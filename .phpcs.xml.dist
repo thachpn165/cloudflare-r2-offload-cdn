@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<ruleset name="My Plugin Coding Standards">
+    <description>PHPCS ruleset for My Plugin</description>
+
+    <!-- What to scan -->
+    <file>.</file>
+
+    <!-- Exclude -->
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <exclude-pattern>/dist/*</exclude-pattern>
+    <exclude-pattern>/svn/*</exclude-pattern>
+    <exclude-pattern>/tests/*</exclude-pattern>
+    <exclude-pattern>/assets/*</exclude-pattern>
+    <exclude-pattern>/.claude/*</exclude-pattern>
+    <exclude-pattern>/.opencode/*</exclude-pattern>
+
+    <!-- Show progress -->
+    <arg value="ps"/>
+    <arg name="colors"/>
+
+    <!-- Check PHP files only -->
+    <arg name="extensions" value="php"/>
+
+    <!-- WordPress Coding Standards -->
+    <rule ref="WordPress">
+        <!-- Allow short array syntax -->
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+        <!-- Allow filename not matching class name (PSR-4) -->
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+    </rule>
+
+    <!-- PHP Compatibility -->
+    <config name="testVersion" value="7.4-"/>
+    <rule ref="PHPCompatibilityWP"/>
+
+    <!-- Text domain -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="my-plugin"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Prefixes -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="my_plugin"/>
+                <element value="ThachPN165\MyPlugin"/>
+            </property>
+        </properties>
+    </rule>
+</ruleset>

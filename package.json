@@ -1,0 +1,14 @@
+{
+  "name": "cloudflare-r2-offload-cdn",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "sass": "^1.69.0",
+    "vite": "^5.0.0"
+  }
+}

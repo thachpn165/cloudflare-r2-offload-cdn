@@ -1,0 +1,44 @@
+{
+    "editor.formatOnSave": false,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": false,
+
+    "[php]": {
+        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+    },
+
+    "[javascript]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
+
+    "[scss]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
+
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/.git": true,
+        "**/dist": true,
+        "**/svn": true
+    },
+
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/dist": true,
+        "**/svn": true
+    },
+
+    "phpcs.enable": true,
+    "phpcs.executablePath": "./vendor/bin/phpcs",
+    "phpcs.standard": ".phpcs.xml.dist",
+
+    "intelephense.environment.phpVersion": "7.4",
+    "intelephense.files.exclude": [
+        "**/vendor/**",
+        "**/node_modules/**"
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "bmewburn.vscode-intelephense-client",
+        "valeryanm.vscode-phpsab",
+        "xdebug.php-debug",
+        "dbaeumer.vscode-eslint",
+        "EditorConfig.EditorConfig"
+    ]
+}

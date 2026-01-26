@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# =============================================================================
+# Pre-commit Hook
+# Copy to .git/hooks/pre-commit
+# =============================================================================
+
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+echo "Running pre-commit checks..."
+
+# Get staged PHP files
+STAGED_PHP=$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$' || true)
+
+if [ -n "$STAGED_PHP" ]; then
+    echo "Checking PHP files..."
+
+    # Run PHP syntax check
+    echo "Checking PHP syntax..."
+    for file in $STAGED_PHP; do
+        php -l "$file" > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}PHP syntax error in: $file${NC}"
+            exit 1
+        fi
+    done
+
+    # Run PHPCS if available
+    if [ -f "./vendor/bin/phpcs" ]; then
+        echo "Running PHPCS..."
+        ./vendor/bin/phpcs $STAGED_PHP --standard=.phpcs.xml.dist
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}PHPCS failed. Fix errors or run: composer phpcbf${NC}"
+            exit 1
+        fi
+    fi
+fi
+
+echo -e "${GREEN}All checks passed!${NC}"
+exit 0

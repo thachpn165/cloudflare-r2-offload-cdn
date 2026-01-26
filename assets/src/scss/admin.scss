@@ -1,0 +1,582 @@
+// Admin styles for CloudFlare R2 Offload My Plugin CDN
+
+// Variables
+$primary-color: #0073aa;
+$primary-hover: #005d8c;
+$success-color: #46b450;
+$error-color: #dc3232;
+$border-color: #c3c4c7;
+$border-light: #e2e4e7;
+$bg-color: #f9f9f9;
+$bg-white: #fff;
+$text-color: #1d2327;
+$text-muted: #646970;
+
+// Mixins
+@mixin card {
+  background: $bg-white;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+@mixin transition($property: all, $duration: 0.2s) {
+  transition: $property $duration ease;
+}
+
+// Settings page wrapper
+.cloudflare-r2-offload-cdn-settings-wrap {
+  max-width: 1200px;
+  margin: 0 20px 20px 0;
+
+  > h1 {
+    margin: 0 0 20px 0;
+    padding-top: 10px;
+  }
+}
+
+// Settings container - flexbox layout
+.cloudflare-r2-offload-cdn-settings-container {
+  display: flex;
+  gap: 20px;
+  background: $bg-white;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  min-height: 500px;
+}
+
+// Sidebar with tabs
+.cloudflare-r2-offload-cdn-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: $bg-color;
+  border-right: 1px solid $border-light;
+  border-radius: 4px 0 0 4px;
+
+  .cloudflare-r2-offload-cdn-tabs {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      margin: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: $text-color;
+      font-weight: 500;
+      @include transition;
+
+      .dashicons {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: $text-muted;
+        @include transition(color);
+      }
+
+      &:hover {
+        background: rgba($primary-color, 0.08);
+        color: $primary-color;
+
+        .dashicons {
+          color: $primary-color;
+        }
+      }
+
+      &.active {
+        background: $primary-color;
+        color: $bg-white;
+
+        .dashicons {
+          color: $bg-white;
+        }
+      }
+    }
+  }
+}
+
+// Content area
+.cloudflare-r2-offload-cdn-content {
+  flex: 1;
+  padding: 24px;
+  min-width: 0;
+
+  h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.3em;
+    color: $text-color;
+  }
+
+  > .description {
+    margin: 0 0 24px 0;
+    color: $text-muted;
+  }
+}
+
+// Tab content panels
+.cloudflare-r2-offload-cdn-tab-content {
+  display: none;
+
+  &.active {
+    display: block;
+  }
+
+  .form-table {
+    margin-top: 0;
+
+    th {
+      width: 200px;
+      padding: 16px 10px 16px 0;
+      vertical-align: top;
+
+      label {
+        font-weight: 600;
+        color: $text-color;
+      }
+    }
+
+    td {
+      padding: 16px 10px;
+
+      .description {
+        color: $text-muted;
+        font-style: normal;
+        margin-top: 6px;
+      }
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="url"],
+    input[type="number"],
+    select,
+    textarea {
+      @include transition(border-color, box-shadow);
+
+      &:focus {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 1px $primary-color;
+        outline: none;
+      }
+    }
+
+    textarea.code {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+    }
+  }
+}
+
+// Toggle switch
+.cloudflare-r2-offload-cdn-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .cloudflare-r2-offload-cdn-toggle-slider {
+      background-color: $primary-color;
+
+      &::before {
+        transform: translateX(20px);
+      }
+    }
+
+    &:focus + .cloudflare-r2-offload-cdn-toggle-slider {
+      box-shadow: 0 0 0 2px rgba($primary-color, 0.25);
+    }
+  }
+
+  .cloudflare-r2-offload-cdn-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    border-radius: 24px;
+    @include transition;
+
+    &::before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: $bg-white;
+      border-radius: 50%;
+      @include transition(transform);
+    }
+  }
+}
+
+// Dashboard notices
+.cloudflare-r2-offload-cdn-dashboard-notices {
+  margin-bottom: 24px;
+
+  .cloudflare-r2-offload-cdn-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    border: 1px solid $border-color;
+
+    > .dashicons {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .cloudflare-r2-offload-cdn-notice-content {
+      flex: 1;
+
+      strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      p {
+        margin: 0;
+        color: $text-muted;
+      }
+    }
+
+    &.info {
+      background: #f0f6fc;
+      border-color: #0073aa;
+
+      > .dashicons {
+        color: #0073aa;
+      }
+    }
+
+    &.success {
+      background: #edfaef;
+      border-color: $success-color;
+
+      > .dashicons {
+        color: $success-color;
+      }
+    }
+
+    &.warning {
+      background: #fcf9e8;
+      border-color: #dba617;
+
+      > .dashicons {
+        color: #dba617;
+      }
+    }
+  }
+}
+
+// Plugin info box
+.cloudflare-r2-offload-cdn-info-box {
+  background: $bg-color;
+  border: 1px solid $border-light;
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: $text-color;
+  }
+
+  .cloudflare-r2-offload-cdn-info-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid $border-light;
+
+      &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .label {
+        color: $text-muted;
+      }
+
+      .value {
+        font-weight: 500;
+        color: $text-color;
+      }
+    }
+  }
+}
+
+// Usage guides accordion
+.cloudflare-r2-offload-cdn-guides {
+  h3 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: $text-color;
+  }
+}
+
+.cloudflare-r2-offload-cdn-accordion {
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  overflow: hidden;
+
+  .cloudflare-r2-offload-cdn-accordion-item {
+    border-bottom: 1px solid $border-light;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .cloudflare-r2-offload-cdn-accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 16px;
+    background: $bg-white;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    color: $text-color;
+    @include transition(background-color);
+
+    &:hover {
+      background: $bg-color;
+    }
+
+    .title {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .toggle-icon {
+      color: $text-muted;
+      @include transition(transform);
+    }
+
+    &.active {
+      background: $bg-color;
+
+      .toggle-icon {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .cloudflare-r2-offload-cdn-accordion-content {
+    display: none;
+    padding: 16px 20px;
+    background: $bg-white;
+    border-top: 1px solid $border-light;
+
+    &.active {
+      display: block;
+    }
+
+    p {
+      margin: 0 0 12px 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul,
+    ol {
+      margin: 0 0 12px 20px;
+      padding: 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      li {
+        margin-bottom: 6px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// Form actions
+.cloudflare-r2-offload-cdn-form-actions {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid $border-light;
+
+  .cloudflare-r2-offload-cdn-save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+
+    .cloudflare-r2-offload-cdn-save-loading {
+      display: none;
+      margin: 0;
+      float: none;
+    }
+
+    &.is-loading {
+      pointer-events: none;
+      opacity: 0.7;
+
+      .cloudflare-r2-offload-cdn-save-text {
+        display: none;
+      }
+
+      .cloudflare-r2-offload-cdn-save-loading {
+        display: inline-block;
+        visibility: visible;
+      }
+    }
+  }
+}
+
+// Toast notifications - positioned at top of settings page
+.cloudflare-r2-offload-cdn-toast {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  &:not(:empty) {
+    display: flex;
+  }
+
+  .cloudflare-r2-offload-cdn-toast-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: $bg-white;
+    border-radius: 4px;
+    border: 1px solid $border-color;
+    animation: fadeSlideDown 0.3s ease;
+
+    .dashicons {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &.success {
+      background: #edfaef;
+      border-color: $success-color;
+
+      .dashicons {
+        color: $success-color;
+      }
+    }
+
+    &.error {
+      background: #fcf0f0;
+      border-color: $error-color;
+
+      .dashicons {
+        color: $error-color;
+      }
+    }
+
+    &.fade-out {
+      animation: fadeSlideUp 0.3s ease forwards;
+    }
+  }
+}
+
+@keyframes fadeSlideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+
+// Responsive
+@media screen and (max-width: 782px) {
+  .cloudflare-r2-offload-cdn-settings-container {
+    flex-direction: column;
+  }
+
+  .cloudflare-r2-offload-cdn-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid $border-light;
+    border-radius: 4px 4px 0 0;
+
+    .cloudflare-r2-offload-cdn-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 8px;
+      gap: 4px;
+
+      li {
+        margin: 0;
+        padding: 10px 14px;
+        font-size: 13px;
+
+        .dashicons {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .cloudflare-r2-offload-cdn-content {
+    padding: 16px;
+  }
+
+  .cloudflare-r2-offload-cdn-tab-content .form-table {
+    th,
+    td {
+      display: block;
+      width: 100%;
+      padding: 8px 0;
+    }
+
+    th {
+      padding-bottom: 4px;
+    }
+  }
+
+}
