@@ -1,0 +1,197 @@
+<?php
+/**
+ * Bulk Actions Tab class.
+ *
+ * @package CFR2OffLoad
+ */
+
+namespace ThachPN165\CFR2OffLoad\Admin\Tabs;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * BulkActionsTab class - renders the bulk actions tab content.
+ */
+class BulkActionsTab {
+
+	/**
+	 * Render the bulk actions tab.
+	 */
+	public static function render(): void {
+		global $wpdb;
+
+		// Get stats.
+		$total_attachments = wp_count_posts( 'attachment' );
+		$total_count       = $total_attachments->inherit ?? 0;
+
+		$offloaded_count = $wpdb->get_var(
+			"SELECT COUNT(DISTINCT post_id)
+			 FROM {$wpdb->postmeta}
+			 WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"
+		);
+
+		$pending_count = $wpdb->get_var(
+			"SELECT COUNT(DISTINCT attachment_id)
+			 FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE status IN ('pending', 'processing')"
+		);
+
+		$failed_count = $wpdb->get_var(
+			"SELECT COUNT(DISTINCT attachment_id)
+			 FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE status = 'failed'
+			 AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+		);
+
+		$local_count = $total_count - $offloaded_count - $pending_count;
+		?>
+		<div class="cloudflare-r2-offload-cdn-tab-content" id="tab-bulk-actions">
+			<h2><?php esc_html_e( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Manage bulk offload operations and monitor progress.', 'cloudflare-r2-offload-cdn' ); ?></p>
+
+			<?php self::render_quick_stats( $total_count, $offloaded_count, $pending_count, $local_count ); ?>
+			<?php self::render_bulk_actions( $failed_count ); ?>
+			<?php self::render_progress_section(); ?>
+			<?php self::render_activity_log(); ?>
+			<?php self::render_error_summary(); ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render quick stats section.
+	 *
+	 * @param int $total_count     Total media count.
+	 * @param int $offloaded_count Offloaded count.
+	 * @param int $pending_count   Pending count.
+	 * @param int $local_count     Local count.
+	 */
+	private static function render_quick_stats( int $total_count, int $offloaded_count, int $pending_count, int $local_count ): void {
+		?>
+		<div class="settings-section cfr2-quick-stats">
+			<h3><?php esc_html_e( 'Quick Stats', 'cloudflare-r2-offload-cdn' ); ?></h3>
+
+			<div class="cfr2-stats-row">
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $total_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Total Media', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $offloaded_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Offloaded', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $pending_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Pending', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $local_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Local', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render bulk actions section.
+	 *
+	 * @param int $failed_count Failed items count.
+	 */
+	private static function render_bulk_actions( int $failed_count ): void {
+		?>
+		<div class="settings-section cfr2-bulk-actions-section">
+			<h3><?php esc_html_e( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ); ?></h3>
+
+			<div class="cfr2-bulk-actions">
+				<button type="button" id="cfr2-bulk-offload-all" class="button button-primary">
+					<?php esc_html_e( 'Offload All Media', 'cloudflare-r2-offload-cdn' ); ?>
+				</button>
+				<?php if ( $failed_count > 0 ) : ?>
+					<button type="button" id="cfr2-retry-all-failed" class="button">
+						<?php
+						/* translators: %d: number of failed items */
+						echo esc_html( sprintf( __( 'Retry Failed (%d)', 'cloudflare-r2-offload-cdn' ), $failed_count ) );
+						?>
+					</button>
+				<?php endif; ?>
+				<button type="button" id="cfr2-cancel-bulk" class="button button-secondary" style="display:none;">
+					<?php esc_html_e( 'Cancel', 'cloudflare-r2-offload-cdn' ); ?>
+				</button>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render progress section.
+	 */
+	private static function render_progress_section(): void {
+		?>
+		<div id="cfr2-bulk-progress-section" style="display:none;">
+			<div class="settings-section cfr2-progress-section">
+				<h3><?php esc_html_e( 'Progress', 'cloudflare-r2-offload-cdn' ); ?></h3>
+
+				<div class="cfr2-progress-bar-container">
+					<div class="cfr2-progress-bar">
+						<div class="cfr2-progress-fill" style="width: 0%;"></div>
+					</div>
+					<span class="cfr2-progress-percentage">0%</span>
+				</div>
+
+				<div class="cfr2-progress-details">
+					<p class="cfr2-current-item">
+						<strong><?php esc_html_e( 'Current:', 'cloudflare-r2-offload-cdn' ); ?></strong>
+						<span id="cfr2-current-file"></span>
+					</p>
+					<p class="cfr2-progress-text"></p>
+					<p class="cfr2-elapsed-time">
+						<strong><?php esc_html_e( 'Elapsed Time:', 'cloudflare-r2-offload-cdn' ); ?></strong>
+						<span id="cfr2-elapsed"></span>
+					</p>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render activity log section.
+	 */
+	private static function render_activity_log(): void {
+		?>
+		<div class="settings-section cfr2-activity-log-section">
+			<div class="cfr2-section-header">
+				<h3><?php esc_html_e( 'Activity Log', 'cloudflare-r2-offload-cdn' ); ?></h3>
+				<button type="button" id="cfr2-clear-log" class="button button-small">
+					<?php esc_html_e( 'Clear Log', 'cloudflare-r2-offload-cdn' ); ?>
+				</button>
+			</div>
+
+			<div class="cfr2-activity-log" id="cfr2-activity-log">
+				<p class="cfr2-no-data"><?php esc_html_e( 'No recent activity.', 'cloudflare-r2-offload-cdn' ); ?></p>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render error summary section.
+	 */
+	private static function render_error_summary(): void {
+		?>
+		<div id="cfr2-error-summary-section" style="display:none;">
+			<div class="settings-section cfr2-error-summary-section">
+				<div class="cfr2-section-header">
+					<h3><?php esc_html_e( 'Failed Items', 'cloudflare-r2-offload-cdn' ); ?></h3>
+					<button type="button" id="cfr2-retry-all" class="button button-primary button-small">
+						<?php esc_html_e( 'Retry All', 'cloudflare-r2-offload-cdn' ); ?>
+					</button>
+				</div>
+
+				<div class="cfr2-error-summary" id="cfr2-error-list"></div>
+			</div>
+		</div>
+		<?php
+	}
+}

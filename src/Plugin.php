@@ -12,7 +12,14 @@ defined( 'ABSPATH' ) || exit;
 use ThachPN165\CFR2OffLoad\Traits\SingletonTrait;
 use ThachPN165\CFR2OffLoad\Core\Loader;
 use ThachPN165\CFR2OffLoad\Admin\AdminMenu;
+use ThachPN165\CFR2OffLoad\Admin\MediaLibraryExtension;
 use ThachPN165\CFR2OffLoad\PublicSide\Assets;
+use ThachPN165\CFR2OffLoad\Database\Schema;
+use ThachPN165\CFR2OffLoad\Hooks\MediaUploadHooks;
+use ThachPN165\CFR2OffLoad\Services\URLRewriter;
+use ThachPN165\CFR2OffLoad\Integrations\WooCommerceIntegration;
+use ThachPN165\CFR2OffLoad\Integrations\GutenbergIntegration;
+use ThachPN165\CFR2OffLoad\Integrations\RestApiIntegration;
 
 /**
  * Plugin class - main entry point.
@@ -33,8 +40,22 @@ class Plugin {
 	 */
 	private function __construct() {
 		$this->loader = new Loader();
+		$this->load_action_scheduler();
+		Schema::maybe_upgrade();
 		$this->define_hooks();
 		$this->loader->run();
+	}
+
+	/**
+	 * Load Action Scheduler if not already loaded.
+	 */
+	private function load_action_scheduler(): void {
+		if ( ! class_exists( 'ActionScheduler' ) ) {
+			$action_scheduler_path = CLOUDFLARE_R2_OFFLOAD_CDN_PATH . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
+			if ( file_exists( $action_scheduler_path ) ) {
+				require_once $action_scheduler_path;
+			}
+		}
 	}
 
 	/**
@@ -45,11 +66,39 @@ class Plugin {
 		if ( is_admin() ) {
 			$admin_menu = new AdminMenu();
 			$admin_menu->register_hooks();
+
+			$media_lib = new MediaLibraryExtension();
+			$media_lib->register_hooks();
 		}
 
 		// Assets.
 		$assets = new Assets();
 		$assets->register_hooks();
+
+		// Media upload hooks.
+		$media_hooks = new MediaUploadHooks();
+		$media_hooks->register_hooks();
+
+		// URL rewriting (frontend + admin for previews).
+		$url_rewriter = new URLRewriter();
+		$url_rewriter->register_hooks();
+
+		// REST API integration (always).
+		$rest_api = new RestApiIntegration();
+		$rest_api->register_hooks();
+
+		// WooCommerce integration (conditional).
+		if ( class_exists( 'WooCommerce' ) ) {
+			$woo = new WooCommerceIntegration();
+			$woo->register_hooks();
+		}
+
+		// Gutenberg integration (always).
+		$gutenberg = new GutenbergIntegration();
+		$gutenberg->register_hooks();
+
+		// Stats cleanup cron.
+		add_action( 'cfr2_cleanup_stats', array( Services\StatsTracker::class, 'cleanup_old_stats' ) );
 	}
 
 	/**

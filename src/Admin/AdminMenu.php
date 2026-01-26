@@ -10,6 +10,10 @@ namespace ThachPN165\CFR2OffLoad\Admin;
 defined( 'ABSPATH' ) || exit;
 
 use ThachPN165\CFR2OffLoad\Interfaces\HookableInterface;
+use ThachPN165\CFR2OffLoad\Services\EncryptionService;
+use ThachPN165\CFR2OffLoad\Services\R2Client;
+use ThachPN165\CFR2OffLoad\Services\CloudflareAPI;
+use ThachPN165\CFR2OffLoad\Services\WorkerDeployer;
 
 /**
  * AdminMenu class - handles admin menu registration and AJAX settings save.
@@ -33,6 +37,18 @@ class AdminMenu implements HookableInterface {
 		add_action( 'admin_menu', array( $this, 'add_menu_page' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'wp_ajax_cloudflare_r2_offload_cdn_save_settings', array( $this, 'ajax_save_settings' ) );
+		add_action( 'wp_ajax_cloudflare_r2_offload_cdn_test_r2', array( $this, 'ajax_test_r2_connection' ) );
+		add_action( 'wp_ajax_cfr2_bulk_offload_all', array( $this, 'ajax_bulk_offload_all' ) );
+		add_action( 'wp_ajax_cfr2_cancel_bulk', array( $this, 'ajax_cancel_bulk' ) );
+		add_action( 'wp_ajax_cfr2_get_bulk_progress', array( $this, 'ajax_get_bulk_progress' ) );
+		add_action( 'wp_ajax_cfr2_deploy_worker', array( $this, 'ajax_deploy_worker' ) );
+		add_action( 'wp_ajax_cfr2_remove_worker', array( $this, 'ajax_remove_worker' ) );
+		add_action( 'wp_ajax_cfr2_worker_status', array( $this, 'ajax_worker_status' ) );
+		add_action( 'wp_ajax_cfr2_get_stats', array( $this, 'ajax_get_stats' ) );
+		add_action( 'wp_ajax_cfr2_get_activity_log', array( $this, 'ajax_get_activity_log' ) );
+		add_action( 'wp_ajax_cfr2_retry_failed', array( $this, 'ajax_retry_failed' ) );
+		add_action( 'wp_ajax_cfr2_retry_single', array( $this, 'ajax_retry_single' ) );
+		add_action( 'wp_ajax_cfr2_clear_log', array( $this, 'ajax_clear_log' ) );
 	}
 
 	/**
@@ -103,15 +119,20 @@ class AdminMenu implements HookableInterface {
 		// Get and sanitize form data.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verified above.
 		$input = array(
-			'enable_feature'      => ! empty( $_POST['enable_feature'] ) ? 1 : 0,
-			'plugin_mode'         => sanitize_text_field( wp_unslash( $_POST['plugin_mode'] ?? 'basic' ) ),
-			'cache_duration'      => absint( $_POST['cache_duration'] ?? 3600 ),
-			'api_key'             => sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) ),
-			'debug_mode'          => ! empty( $_POST['debug_mode'] ) ? 1 : 0,
-			'custom_css'          => wp_strip_all_tags( wp_unslash( $_POST['custom_css'] ?? '' ) ),
-			'enable_analytics'    => ! empty( $_POST['enable_analytics'] ) ? 1 : 0,
-			'third_party_api_url' => esc_url_raw( wp_unslash( $_POST['third_party_api_url'] ?? '' ) ),
-			'webhook_url'         => esc_url_raw( wp_unslash( $_POST['webhook_url'] ?? '' ) ),
+			'r2_account_id'           => sanitize_text_field( wp_unslash( $_POST['r2_account_id'] ?? '' ) ),
+			'r2_access_key_id'        => sanitize_text_field( wp_unslash( $_POST['r2_access_key_id'] ?? '' ) ),
+			'r2_secret_access_key'    => sanitize_text_field( wp_unslash( $_POST['r2_secret_access_key'] ?? '' ) ),
+			'r2_bucket'               => sanitize_text_field( wp_unslash( $_POST['r2_bucket'] ?? '' ) ),
+			'r2_public_domain'        => esc_url_raw( wp_unslash( $_POST['r2_public_domain'] ?? '' ) ),
+			'auto_offload'            => ! empty( $_POST['auto_offload'] ) ? 1 : 0,
+			'batch_size'              => absint( $_POST['batch_size'] ?? 25 ),
+			'cdn_enabled'             => ! empty( $_POST['cdn_enabled'] ) ? 1 : 0,
+			'cdn_url'                 => esc_url_raw( wp_unslash( $_POST['cdn_url'] ?? '' ) ),
+			'quality'                 => absint( $_POST['quality'] ?? 85 ),
+			'enable_avif'             => ! empty( $_POST['enable_avif'] ) ? 1 : 0,
+			'cf_api_token'            => sanitize_text_field( wp_unslash( $_POST['cf_api_token'] ?? '' ) ),
+			'woocommerce_integration' => ! empty( $_POST['woocommerce_integration'] ) ? 1 : 0,
+			'gutenberg_integration'   => ! empty( $_POST['gutenberg_integration'] ) ? 1 : 0,
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
@@ -151,100 +172,136 @@ class AdminMenu implements HookableInterface {
 	public function sanitize_settings( array $input ): array {
 		$sanitized = array();
 
-		// General settings.
-		$sanitized['enable_feature'] = ! empty( $input['enable_feature'] ) ? 1 : 0;
-		$sanitized['plugin_mode']    = in_array( $input['plugin_mode'] ?? '', array( 'basic', 'advanced', 'pro' ), true )
-			? $input['plugin_mode']
-			: 'basic';
+		// R2 Credentials - sanitize and encrypt.
+		$sanitized['r2_account_id']    = preg_replace( '/[^a-zA-Z0-9]/', '', $input['r2_account_id'] ?? '' );
+		$sanitized['r2_access_key_id'] = sanitize_text_field( $input['r2_access_key_id'] ?? '' );
 
-		// Cache duration: enforce 0-86400 range (0-24h).
-		$cache_duration = absint( $input['cache_duration'] ?? 3600 );
-		$sanitized['cache_duration'] = max( 0, min( $cache_duration, 86400 ) );
+		// R2 Secret Access Key - only encrypt if not placeholder.
+		$secret = $input['r2_secret_access_key'] ?? '';
+		if ( ! empty( $secret ) && $secret !== '********' ) {
+			$encryption                            = new EncryptionService();
+			$sanitized['r2_secret_access_key'] = $encryption->encrypt( $secret );
+		} else {
+			// Keep existing value.
+			$existing                              = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+			$sanitized['r2_secret_access_key'] = $existing['r2_secret_access_key'] ?? '';
+		}
 
-		// Advanced settings.
-		$api_key = sanitize_text_field( $input['api_key'] ?? '' );
-		$sanitized['api_key'] = ! empty( $api_key ) ? self::encrypt_api_key( $api_key ) : '';
-		$sanitized['debug_mode'] = ! empty( $input['debug_mode'] ) ? 1 : 0;
+		// R2 Bucket - lowercase alphanumeric + hyphens only.
+		$sanitized['r2_bucket'] = preg_replace( '/[^a-z0-9\-]/', '', strtolower( $input['r2_bucket'] ?? '' ) );
 
-		// Custom CSS with dangerous pattern blocking.
-		$sanitized['custom_css'] = $this->sanitize_custom_css( $input['custom_css'] ?? '' );
+		// R2 Public Domain - custom domain for public access.
+		$sanitized['r2_public_domain'] = esc_url_raw( $input['r2_public_domain'] ?? '' );
 
-		// Integrations settings with SSRF protection.
-		$sanitized['enable_analytics']    = ! empty( $input['enable_analytics'] ) ? 1 : 0;
-		$sanitized['third_party_api_url'] = $this->sanitize_url_field( $input['third_party_api_url'] ?? '' );
-		$sanitized['webhook_url']         = $this->sanitize_url_field( $input['webhook_url'] ?? '' );
+		// Offload settings.
+		$sanitized['auto_offload'] = ! empty( $input['auto_offload'] ) ? 1 : 0;
+		$batch_size                = absint( $input['batch_size'] ?? 25 );
+		$sanitized['batch_size']   = max( 10, min( $batch_size, 50 ) );
+
+		// CDN settings.
+		$sanitized['cdn_enabled'] = ! empty( $input['cdn_enabled'] ) ? 1 : 0;
+		$sanitized['cdn_url']     = $this->sanitize_url_field( $input['cdn_url'] ?? '' );
+
+		// Quality: 1-100.
+		$quality              = absint( $input['quality'] ?? 85 );
+		$sanitized['quality'] = max( 1, min( $quality, 100 ) );
+
+		$sanitized['enable_avif'] = ! empty( $input['enable_avif'] ) ? 1 : 0;
+
+		// Integrations settings.
+		$sanitized['woocommerce_integration'] = ! empty( $input['woocommerce_integration'] ) ? 1 : 0;
+		$sanitized['gutenberg_integration']   = ! empty( $input['gutenberg_integration'] ) ? 1 : 0;
+
+		// Cloudflare API Token - only encrypt if not placeholder.
+		$cf_token = $input['cf_api_token'] ?? '';
+		if ( ! empty( $cf_token ) && $cf_token !== '********' ) {
+			$encryption                   = new EncryptionService();
+			$sanitized['cf_api_token'] = $encryption->encrypt( $cf_token );
+		} else {
+			// Keep existing value.
+			$existing                     = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+			$sanitized['cf_api_token'] = $existing['cf_api_token'] ?? '';
+		}
+
+		// Worker deployment internal fields (preserve).
+		$existing                          = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+		$sanitized['worker_deployed']      = $existing['worker_deployed'] ?? false;
+		$sanitized['worker_name']          = $existing['worker_name'] ?? '';
+		$sanitized['worker_deployed_at']   = $existing['worker_deployed_at'] ?? '';
 
 		return $sanitized;
 	}
 
 	/**
-	 * Sanitize custom CSS field - block dangerous patterns.
-	 *
-	 * @param string $css Raw CSS input.
-	 * @return string Sanitized CSS.
+	 * Test R2 connection via AJAX.
 	 */
-	private function sanitize_custom_css( string $css ): string {
-		$css = wp_strip_all_tags( $css );
-
-		if ( empty( $css ) ) {
-			return '';
+	public function ajax_test_r2_connection(): void {
+		// Verify nonce.
+		if ( false === check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'cloudflare_r2_offload_cdn_nonce', false ) ) {
+			wp_send_json_error(
+				array( 'message' => __( 'Security check failed.', 'cloudflare-r2-offload-cdn' ) ),
+				403
+			);
 		}
 
-		// Block dangerous CSS patterns.
-		$dangerous_patterns = array(
-			'/(@import|expression|behavior|javascript:|data:(?!image))/i',
-			'/(document\.|window\.|eval\()/i',
-			'/url\s*\(\s*["\']?\s*(?!data:image)/i',
+		// Check permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error(
+				array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ),
+				403
+			);
+		}
+
+		// Rate limiting - 5 attempts per minute.
+		$user_id  = get_current_user_id();
+		$rate_key = 'cfr2_r2_test_' . $user_id;
+		$count    = get_transient( $rate_key );
+
+		if ( false !== $count && (int) $count >= 5 ) {
+			wp_send_json_error(
+				array( 'message' => __( 'Too many attempts. Wait 60 seconds.', 'cloudflare-r2-offload-cdn' ) ),
+				429
+			);
+		}
+		set_transient( $rate_key, ( $count ? (int) $count + 1 : 1 ), 60 );
+
+		// Get credentials from settings.
+		$settings   = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+		$encryption = new EncryptionService();
+
+		$credentials = array(
+			'account_id'        => $settings['r2_account_id'] ?? '',
+			'access_key_id'     => $settings['r2_access_key_id'] ?? '',
+			'secret_access_key' => $encryption->decrypt( $settings['r2_secret_access_key'] ?? '' ),
+			'bucket'            => $settings['r2_bucket'] ?? '',
 		);
 
-		foreach ( $dangerous_patterns as $pattern ) {
-			if ( preg_match( $pattern, $css ) ) {
-				return ''; // Clear if dangerous patterns detected.
+		// Validate all fields present.
+		foreach ( $credentials as $key => $value ) {
+			if ( empty( $value ) ) {
+				wp_send_json_error(
+					array(
+						'message' => sprintf(
+							/* translators: %s: credential field name */
+							__( 'Missing %s', 'cloudflare-r2-offload-cdn' ),
+							$key
+						),
+					)
+				);
 			}
 		}
 
-		return $css;
-	}
+		// Test connection.
+		$r2     = new R2Client( $credentials );
+		$result = $r2->test_connection();
 
-	/**
-	 * Sanitize URL field with SSRF protection.
-	 *
-	 * @param string $url Raw URL input.
-	 * @return string Sanitized URL or empty if invalid/blocked.
-	 */
-	private function sanitize_url_field( string $url ): string {
-		$url = esc_url_raw( $url );
-
-		if ( empty( $url ) ) {
-			return '';
+		if ( $result['success'] ) {
+			wp_send_json_success(
+				array( 'message' => __( 'Connection successful!', 'cloudflare-r2-offload-cdn' ) )
+			);
+		} else {
+			wp_send_json_error( array( 'message' => $result['message'] ) );
 		}
-
-		$parsed = wp_parse_url( $url );
-
-		if ( ! $parsed || ! isset( $parsed['scheme'], $parsed['host'] ) ) {
-			return '';
-		}
-
-		// Only allow http/https.
-		if ( ! in_array( $parsed['scheme'], array( 'http', 'https' ), true ) ) {
-			return '';
-		}
-
-		// Block private/internal IPs (SSRF protection).
-		$host = $parsed['host'];
-
-		$blocked_patterns = array(
-			'/^(localhost|127\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|169\.254\.)/i',
-			'/^(0\.0\.0\.0|::1|fc00::|fe80::)/i',
-		);
-
-		foreach ( $blocked_patterns as $pattern ) {
-			if ( preg_match( $pattern, $host ) ) {
-				return '';
-			}
-		}
-
-		return $url;
 	}
 
 	/**
@@ -254,118 +311,452 @@ class AdminMenu implements HookableInterface {
 	 */
 	private function get_default_settings(): array {
 		return array(
-			'enable_feature'      => 0,
-			'plugin_mode'         => 'basic',
-			'cache_duration'      => 3600,
-			'api_key'             => '',
-			'debug_mode'          => 0,
-			'custom_css'          => '',
-			'enable_analytics'    => 0,
-			'third_party_api_url' => '',
-			'webhook_url'         => '',
+			'r2_account_id'           => '',
+			'r2_access_key_id'        => '',
+			'r2_secret_access_key'    => '',
+			'r2_bucket'               => '',
+			'r2_public_domain'        => '',
+			'auto_offload'            => 0,
+			'batch_size'              => 25,
+			'cdn_enabled'             => 0,
+			'cdn_url'                 => '',
+			'quality'                 => 85,
+			'enable_avif'             => 0,
+			'cf_api_token'            => '',
+			'woocommerce_integration' => 0,
+			'gutenberg_integration'   => 0,
+			'worker_deployed'         => false,
+			'worker_name'             => '',
+			'worker_deployed_at'      => '',
 		);
 	}
 
 	/**
-	 * Encrypt API key with HMAC authentication.
-	 *
-	 * @param string $key Plain text API key.
-	 * @return string Encrypted API key (base64 encoded with HMAC).
+	 * AJAX handler for bulk offload all.
 	 */
-	public static function encrypt_api_key( string $key ): string {
-		if ( empty( $key ) ) {
-			return '';
+	public function ajax_bulk_offload_all(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
 		}
 
-		// Validate AUTH_KEY is properly configured.
-		if ( ! self::is_auth_key_valid() ) {
-			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-			return base64_encode( $key );
+		global $wpdb;
+
+		// Get all non-offloaded attachments.
+		$attachments = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'     => '_cfr2_offloaded',
+						'compare' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+
+		$queued = 0;
+		foreach ( $attachments as $attachment_id ) {
+			$wpdb->insert(
+				$wpdb->prefix . 'cfr2_offload_queue',
+				array(
+					'attachment_id' => $attachment_id,
+					'action'        => 'offload',
+					'status'        => 'pending',
+					'created_at'    => current_time( 'mysql' ),
+				),
+				array( '%d', '%s', '%s', '%s' )
+			);
+			++$queued;
 		}
 
-		$method    = 'AES-256-CBC';
-		$iv_length = openssl_cipher_iv_length( $method );
+		// Clear any cancellation flag.
+		delete_transient( 'cfr2_bulk_cancelled' );
 
-		if ( false === $iv_length ) {
-			return '';
+		// Schedule processing.
+		if ( ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+			as_schedule_single_action( time(), 'cfr2_process_queue' );
 		}
 
-		$iv = openssl_random_pseudo_bytes( $iv_length, $crypto_strong );
-
-		if ( false === $iv || ! $crypto_strong ) {
-			return '';
-		}
-
-		$encrypted = openssl_encrypt( $key, $method, AUTH_KEY, 0, $iv );
-
-		if ( false === $encrypted ) {
-			return '';
-		}
-
-		// Add HMAC for authenticated encryption.
-		$hmac = hash_hmac( 'sha256', $encrypted, AUTH_KEY, true );
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		return base64_encode( $iv . $hmac . $encrypted );
+		wp_send_json_success(
+			array(
+				'message' => sprintf(
+					/* translators: %d: number of files */
+					__( '%d files queued for offload.', 'cloudflare-r2-offload-cdn' ),
+					$queued
+				),
+				'total'   => $queued,
+			)
+		);
 	}
 
 	/**
-	 * Decrypt API key with HMAC verification.
-	 *
-	 * @param string $encrypted Encrypted API key.
-	 * @return string Decrypted plain text API key.
+	 * AJAX handler for cancel bulk.
 	 */
-	public static function decrypt_api_key( string $encrypted ): string {
-		if ( empty( $encrypted ) ) {
-			return '';
+	public function ajax_cancel_bulk(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
 		}
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-		$data = base64_decode( $encrypted, true );
+		set_transient( 'cfr2_bulk_cancelled', true, 300 );
 
-		if ( false === $data ) {
-			return '';
-		}
+		// Clear pending queue items.
+		global $wpdb;
+		$wpdb->update(
+			$wpdb->prefix . 'cfr2_offload_queue',
+			array( 'status' => 'cancelled' ),
+			array( 'status' => 'pending' ),
+			array( '%s' ),
+			array( '%s' )
+		);
 
-		// Fallback for non-encrypted (base64 only) keys.
-		if ( ! self::is_auth_key_valid() ) {
-			return $data;
-		}
-
-		$method      = 'AES-256-CBC';
-		$iv_length   = openssl_cipher_iv_length( $method );
-		$hmac_length = 32; // SHA256 = 32 bytes.
-
-		// Validate data length.
-		if ( strlen( $data ) < $iv_length + $hmac_length ) {
-			return '';
-		}
-
-		// Extract components.
-		$iv         = substr( $data, 0, $iv_length );
-		$hmac       = substr( $data, $iv_length, $hmac_length );
-		$ciphertext = substr( $data, $iv_length + $hmac_length );
-
-		// Verify HMAC (constant-time comparison).
-		$expected_hmac = hash_hmac( 'sha256', $ciphertext, AUTH_KEY, true );
-
-		if ( ! hash_equals( $expected_hmac, $hmac ) ) {
-			return ''; // Tampering detected.
-		}
-
-		$decrypted = openssl_decrypt( $ciphertext, $method, AUTH_KEY, 0, $iv );
-
-		return false !== $decrypted ? $decrypted : '';
+		wp_send_json_success( array( 'message' => __( 'Bulk offload cancelled.', 'cloudflare-r2-offload-cdn' ) ) );
 	}
 
 	/**
-	 * Check if AUTH_KEY is properly configured.
-	 *
-	 * @return bool True if valid, false otherwise.
+	 * AJAX handler for get bulk progress.
 	 */
-	private static function is_auth_key_valid(): bool {
-		return defined( 'AUTH_KEY' )
-			&& AUTH_KEY !== 'put your unique phrase here'
-			&& strlen( AUTH_KEY ) >= 32;
+	public function ajax_get_bulk_progress(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		global $wpdb;
+
+		$stats = $wpdb->get_row(
+			"SELECT
+				SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+				SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+				SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+				SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
+				COUNT(*) as total
+			 FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+		);
+
+		// Get current processing item.
+		$current_item = $wpdb->get_row(
+			"SELECT attachment_id FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE status = 'processing'
+			 ORDER BY created_at ASC
+			 LIMIT 1"
+		);
+
+		$current_file = '';
+		if ( $current_item ) {
+			$file_path    = get_attached_file( $current_item->attachment_id );
+			$current_file = $file_path ? basename( $file_path ) : '';
+		}
+
+		wp_send_json_success(
+			array(
+				'completed'    => (int) $stats->completed,
+				'failed'       => (int) $stats->failed,
+				'pending'      => (int) $stats->pending,
+				'processing'   => (int) $stats->processing,
+				'total'        => (int) $stats->total,
+				'is_running'   => $stats->pending > 0 || $stats->processing > 0,
+				'current_file' => $current_file,
+			)
+		);
+	}
+
+	/**
+	 * AJAX handler for deploy worker.
+	 */
+	public function ajax_deploy_worker(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+
+		// Validate required fields.
+		if ( empty( $settings['cf_api_token'] ) || empty( $settings['r2_account_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Missing Cloudflare API Token or Account ID.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+
+		// Decrypt API token.
+		$encryption = new EncryptionService();
+		$api_token  = $encryption->decrypt( $settings['cf_api_token'] );
+
+		// Initialize services.
+		$api      = new CloudflareAPI( $api_token, $settings['r2_account_id'] );
+		$deployer = new WorkerDeployer( $api );
+
+		// Build R2 public URL.
+		$r2_public_url = "https://{$settings['r2_bucket']}.{$settings['r2_account_id']}.r2.cloudflarestorage.com";
+
+		// Deploy.
+		$result = $deployer->deploy(
+			array(
+				'r2_public_url'  => $r2_public_url,
+				'custom_domain'  => $settings['cdn_url'] ?? '',
+				'enable_avif'    => ! empty( $settings['enable_avif'] ),
+			)
+		);
+
+		if ( $result['success'] ) {
+			// Save deployment info.
+			$settings['worker_deployed']    = true;
+			$settings['worker_name']        = $result['worker_name'];
+			$settings['worker_deployed_at'] = current_time( 'mysql' );
+			update_option( 'cloudflare_r2_offload_cdn_settings', $settings );
+
+			wp_send_json_success(
+				array(
+					'message' => __( 'Worker deployed successfully!', 'cloudflare-r2-offload-cdn' ),
+					'steps'   => $result['steps'],
+				)
+			);
+		} else {
+			wp_send_json_error(
+				array(
+					'message' => $result['message'],
+					'steps'   => $result['steps'],
+				)
+			);
+		}
+	}
+
+	/**
+	 * AJAX handler for remove worker.
+	 */
+	public function ajax_remove_worker(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+
+		$encryption = new EncryptionService();
+		$api_token  = $encryption->decrypt( $settings['cf_api_token'] ?? '' );
+
+		$api      = new CloudflareAPI( $api_token, $settings['r2_account_id'] ?? '' );
+		$deployer = new WorkerDeployer( $api );
+
+		$result = $deployer->undeploy();
+
+		if ( $result['success'] ) {
+			$settings['worker_deployed'] = false;
+			unset( $settings['worker_name'], $settings['worker_deployed_at'] );
+			update_option( 'cloudflare_r2_offload_cdn_settings', $settings );
+
+			wp_send_json_success( array( 'message' => __( 'Worker removed.', 'cloudflare-r2-offload-cdn' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => $result['errors'][0]['message'] ?? 'Unknown error' ) );
+		}
+	}
+
+	/**
+	 * AJAX handler for worker status.
+	 */
+	public function ajax_worker_status(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+
+		if ( empty( $settings['worker_deployed'] ) ) {
+			wp_send_json_success( array( 'deployed' => false ) );
+			return;
+		}
+
+		$encryption = new EncryptionService();
+		$api_token  = $encryption->decrypt( $settings['cf_api_token'] ?? '' );
+
+		$api      = new CloudflareAPI( $api_token, $settings['r2_account_id'] ?? '' );
+		$deployer = new WorkerDeployer( $api );
+
+		$status = $deployer->get_status();
+
+		wp_send_json_success(
+			array(
+				'deployed'    => true,
+				'worker_name' => $settings['worker_name'] ?? '',
+				'deployed_at' => $settings['worker_deployed_at'] ?? '',
+				'status'      => $status,
+			)
+		);
+	}
+
+	/**
+	 * AJAX handler for get stats.
+	 */
+	public function ajax_get_stats(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$period = sanitize_text_field( wp_unslash( $_GET['period'] ?? 'month' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		switch ( $period ) {
+			case 'week':
+				$days = 7;
+				break;
+			case 'month':
+			default:
+				$days = 30;
+				break;
+		}
+
+		$daily_stats    = \ThachPN165\CFR2OffLoad\Services\StatsTracker::get_daily_stats( $days );
+		$current_month  = \ThachPN165\CFR2OffLoad\Services\StatsTracker::get_current_month_transformations();
+		$chart_data     = \ThachPN165\CFR2OffLoad\Admin\Widgets\StatsWidget::get_chart_data();
+
+		wp_send_json_success(
+			array(
+				'daily'         => $daily_stats,
+				'current_month' => $current_month,
+				'chart_data'    => $chart_data,
+			)
+		);
+	}
+
+	/**
+	 * AJAX handler for get activity log.
+	 */
+	public function ajax_get_activity_log(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$limit = isset( $_GET['limit'] ) ? absint( $_GET['limit'] ) : 20;
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$logs = \ThachPN165\CFR2OffLoad\Services\BulkOperationLogger::get_logs( $limit );
+
+		wp_send_json_success( array( 'logs' => $logs ) );
+	}
+
+	/**
+	 * AJAX handler for retry all failed.
+	 */
+	public function ajax_retry_failed(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		global $wpdb;
+
+		// Get all failed items from last 24 hours.
+		$failed_items = $wpdb->get_results(
+			"SELECT DISTINCT attachment_id FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE status = 'failed'
+			 AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+		);
+
+		$queued = 0;
+		foreach ( $failed_items as $item ) {
+			// Reset status to pending.
+			$wpdb->update(
+				$wpdb->prefix . 'cfr2_offload_queue',
+				array(
+					'status'        => 'pending',
+					'error_message' => null,
+					'processed_at'  => null,
+				),
+				array( 'attachment_id' => $item->attachment_id ),
+				array( '%s', '%s', '%s' ),
+				array( '%d' )
+			);
+			++$queued;
+		}
+
+		// Schedule processing.
+		if ( $queued > 0 && ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+			as_schedule_single_action( time(), 'cfr2_process_queue' );
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => sprintf(
+					/* translators: %d: number of items */
+					__( '%d items queued for retry.', 'cloudflare-r2-offload-cdn' ),
+					$queued
+				),
+				'queued'  => $queued,
+			)
+		);
+	}
+
+	/**
+	 * AJAX handler for retry single.
+	 */
+	public function ajax_retry_single(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$attachment_id = isset( $_POST['attachment_id'] ) ? absint( $_POST['attachment_id'] ) : 0;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! $attachment_id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid attachment ID.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+
+		global $wpdb;
+
+		// Reset status to pending.
+		$updated = $wpdb->update(
+			$wpdb->prefix . 'cfr2_offload_queue',
+			array(
+				'status'        => 'pending',
+				'error_message' => null,
+				'processed_at'  => null,
+			),
+			array( 'attachment_id' => $attachment_id ),
+			array( '%s', '%s', '%s' ),
+			array( '%d' )
+		);
+
+		if ( $updated ) {
+			// Schedule processing.
+			if ( ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+				as_schedule_single_action( time(), 'cfr2_process_queue' );
+			}
+
+			wp_send_json_success( array( 'message' => __( 'Item queued for retry.', 'cloudflare-r2-offload-cdn' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to queue item.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+	}
+
+	/**
+	 * AJAX handler for clear log.
+	 */
+	public function ajax_clear_log(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		\ThachPN165\CFR2OffLoad\Services\BulkOperationLogger::clear();
+
+		wp_send_json_success( array( 'message' => __( 'Activity log cleared.', 'cloudflare-r2-offload-cdn' ) ) );
 	}
 }

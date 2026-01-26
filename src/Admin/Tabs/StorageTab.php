@@ -1,0 +1,107 @@
+<?php
+/**
+ * Storage Tab class.
+ *
+ * @package CFR2OffLoad
+ */
+
+namespace ThachPN165\CFR2OffLoad\Admin\Tabs;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * StorageTab class - renders R2 storage credentials and connection test.
+ */
+class StorageTab {
+
+	/**
+	 * Render the storage tab.
+	 *
+	 * @param array $settings Current settings.
+	 */
+	public static function render( array $settings ): void {
+		?>
+		<div class="cloudflare-r2-offload-cdn-tab-content" id="tab-storage">
+			<h2><?php esc_html_e( 'R2 Storage Configuration', 'cloudflare-r2-offload-cdn' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Configure your Cloudflare R2 storage credentials. Get these from Cloudflare Dashboard > R2 > Manage R2 API Tokens.', 'cloudflare-r2-offload-cdn' ); ?></p>
+
+			<table class="form-table">
+				<tr>
+					<th scope="row">
+						<label for="r2_account_id"><?php esc_html_e( 'Account ID', 'cloudflare-r2-offload-cdn' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="r2_account_id" name="r2_account_id"
+							value="<?php echo esc_attr( $settings['r2_account_id'] ?? '' ); ?>"
+							class="regular-text" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'Your Cloudflare account ID (alphanumeric).', 'cloudflare-r2-offload-cdn' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="r2_access_key_id"><?php esc_html_e( 'Access Key ID', 'cloudflare-r2-offload-cdn' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="r2_access_key_id" name="r2_access_key_id"
+							value="<?php echo esc_attr( $settings['r2_access_key_id'] ?? '' ); ?>"
+							class="regular-text" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'R2 Access Key ID from API token.', 'cloudflare-r2-offload-cdn' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="r2_secret_access_key"><?php esc_html_e( 'Secret Access Key', 'cloudflare-r2-offload-cdn' ); ?></label>
+					</th>
+					<td>
+						<?php
+						$secret_value = ! empty( $settings['r2_secret_access_key'] ) ? '********' : '';
+						?>
+						<input type="password" id="r2_secret_access_key" name="r2_secret_access_key"
+							value="<?php echo esc_attr( $secret_value ); ?>"
+							class="regular-text" autocomplete="new-password" />
+						<p class="description"><?php esc_html_e( 'R2 Secret Access Key (encrypted in database). Leave blank to keep existing value.', 'cloudflare-r2-offload-cdn' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="r2_bucket"><?php esc_html_e( 'Bucket Name', 'cloudflare-r2-offload-cdn' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="r2_bucket" name="r2_bucket"
+							value="<?php echo esc_attr( $settings['r2_bucket'] ?? '' ); ?>"
+							class="regular-text" />
+						<p class="description"><?php esc_html_e( 'R2 bucket name (lowercase alphanumeric and hyphens only).', 'cloudflare-r2-offload-cdn' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="r2_public_domain"><?php esc_html_e( 'Public Domain', 'cloudflare-r2-offload-cdn' ); ?></label>
+					</th>
+					<td>
+						<input type="url" id="r2_public_domain" name="r2_public_domain"
+							value="<?php echo esc_url( $settings['r2_public_domain'] ?? '' ); ?>"
+							class="regular-text" placeholder="https://media.example.com" />
+						<p class="description">
+							<?php esc_html_e( 'Custom domain for R2 public access. Used when CDN is disabled.', 'cloudflare-r2-offload-cdn' ); ?>
+							<br>
+							<a href="https://developers.cloudflare.com/r2/buckets/public-buckets/#custom-domains" target="_blank" rel="noopener">
+								<?php esc_html_e( 'Learn how to set up R2 custom domain →', 'cloudflare-r2-offload-cdn' ); ?>
+							</a>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Connection Test', 'cloudflare-r2-offload-cdn' ); ?></th>
+					<td>
+						<button type="button" id="test-r2-connection" class="button button-secondary">
+							<?php esc_html_e( 'Test Connection', 'cloudflare-r2-offload-cdn' ); ?>
+						</button>
+						<span id="r2-connection-result" style="margin-left: 10px;"></span>
+						<p class="description"><?php esc_html_e( 'Verify R2 credentials by testing connection.', 'cloudflare-r2-offload-cdn' ); ?></p>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<?php
+	}
+}

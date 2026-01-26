@@ -48,6 +48,10 @@ if ( ! function_exists( 'plugin_basename' ) ) {
 	}
 }
 
+// Global options storage for tests.
+global $_test_options;
+$_test_options = array();
+
 if ( ! function_exists( 'get_option' ) ) {
 	/**
 	 * Mock get_option.
@@ -57,8 +61,184 @@ if ( ! function_exists( 'get_option' ) ) {
 	 * @return mixed Option value.
 	 */
 	function get_option( $option, $default = false ) {
-		return $default;
+		global $_test_options;
+		return $_test_options[ $option ] ?? $default;
 	}
+}
+
+if ( ! function_exists( 'update_option' ) ) {
+	/**
+	 * Mock update_option.
+	 *
+	 * @param string $option Option name.
+	 * @param mixed  $value  Option value.
+	 * @return bool Always true.
+	 */
+	function update_option( $option, $value ) {
+		global $_test_options;
+		$_test_options[ $option ] = $value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+	/**
+	 * Mock delete_option.
+	 *
+	 * @param string $option Option name.
+	 * @return bool Always true.
+	 */
+	function delete_option( $option ) {
+		global $_test_options;
+		unset( $_test_options[ $option ] );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'did_action' ) ) {
+	/**
+	 * Mock did_action.
+	 *
+	 * @param string $hook Hook name.
+	 * @return int Always 0.
+	 */
+	function did_action( $hook ) {
+		return 0;
+	}
+}
+
+if ( ! function_exists( 'absint' ) ) {
+	/**
+	 * Mock absint.
+	 *
+	 * @param mixed $value Value to convert.
+	 * @return int Absolute integer.
+	 */
+	function absint( $value ) {
+		return abs( (int) $value );
+	}
+}
+
+if ( ! function_exists( 'get_transient' ) ) {
+	/**
+	 * Mock get_transient.
+	 *
+	 * @param string $transient Transient name.
+	 * @return mixed False (no transient).
+	 */
+	function get_transient( $transient ) {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'set_transient' ) ) {
+	/**
+	 * Mock set_transient.
+	 *
+	 * @param string $transient Transient name.
+	 * @param mixed  $value     Transient value.
+	 * @param int    $expiration Expiration time.
+	 * @return bool Always true.
+	 */
+	function set_transient( $transient, $value, $expiration = 0 ) {
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_transient' ) ) {
+	/**
+	 * Mock delete_transient.
+	 *
+	 * @param string $transient Transient name.
+	 * @return bool Always true.
+	 */
+	function delete_transient( $transient ) {
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_strip_all_tags' ) ) {
+	/**
+	 * Mock wp_strip_all_tags.
+	 *
+	 * @param string $string String to strip.
+	 * @return string Stripped string.
+	 */
+	function wp_strip_all_tags( $string ) {
+		return strip_tags( $string );
+	}
+}
+
+if ( ! function_exists( 'wp_remote_head' ) ) {
+	/**
+	 * Mock wp_remote_head.
+	 *
+	 * @param string $url URL to request.
+	 * @param array  $args Request args.
+	 * @return array Response array.
+	 */
+	function wp_remote_head( $url, $args = array() ) {
+		return array( 'response' => array( 'code' => 200 ) );
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_response_code' ) ) {
+	/**
+	 * Mock wp_remote_retrieve_response_code.
+	 *
+	 * @param array $response Response array.
+	 * @return int Response code.
+	 */
+	function wp_remote_retrieve_response_code( $response ) {
+		return $response['response']['code'] ?? 200;
+	}
+}
+
+if ( ! function_exists( 'is_wp_error' ) ) {
+	/**
+	 * Mock is_wp_error.
+	 *
+	 * @param mixed $thing Thing to check.
+	 * @return bool Always false.
+	 */
+	function is_wp_error( $thing ) {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	/**
+	 * Mock esc_url_raw.
+	 *
+	 * @param string $url URL to escape.
+	 * @return string Escaped URL.
+	 */
+	function esc_url_raw( $url ) {
+		return filter_var( $url, FILTER_SANITIZE_URL ) ?: '';
+	}
+}
+
+// Mock dbDelta function.
+if ( ! function_exists( 'dbDelta' ) ) {
+	/**
+	 * Mock dbDelta.
+	 *
+	 * @param string $queries SQL queries.
+	 * @return array Always empty array.
+	 */
+	function dbDelta( $queries ) {
+		return array();
+	}
+}
+
+// Mock global $wpdb for tests.
+if ( ! isset( $GLOBALS['wpdb'] ) ) {
+	$GLOBALS['wpdb'] = new class {
+		public $prefix = 'wp_';
+		public function get_charset_collate() {
+			return 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci';
+		}
+	};
 }
 
 if ( ! function_exists( 'sanitize_text_field' ) ) {
@@ -114,6 +294,22 @@ if ( ! function_exists( 'add_filter' ) ) {
 
 if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', '/var/www/html/' );
+}
+
+// Mock WP_Post class.
+if ( ! class_exists( 'WP_Post' ) ) {
+	class WP_Post {
+		public $ID;
+		public $post_title;
+		public $post_content;
+		public function __construct( $post = null ) {
+			if ( $post ) {
+				foreach ( get_object_vars( $post ) as $key => $value ) {
+					$this->$key = $value;
+				}
+			}
+		}
+	}
 }
 
 // Define plugin constants.

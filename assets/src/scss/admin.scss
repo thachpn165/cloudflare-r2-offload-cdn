@@ -580,3 +580,373 @@ $text-muted: #646970;
   }
 
 }
+
+// Stats Widget
+.cfr2-stats-widget {
+  background: #f9f9f9;
+  border: 1px solid #e2e4e7;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.cfr2-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cfr2-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e2e4e7;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.cfr2-stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #0073aa;
+  margin-bottom: 4px;
+}
+
+.cfr2-stat-label {
+  font-size: 13px;
+  color: #646970;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cfr2-stats-chart {
+  margin-bottom: 20px;
+
+  h5 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: #1d2327;
+  }
+}
+
+.cfr2-mini-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 80px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e2e4e7;
+  border-radius: 4px;
+}
+
+.cfr2-chart-bar {
+  flex: 1;
+  min-height: 2px;
+  background: linear-gradient(180deg, #0073aa 0%, #005a87 100%);
+  border-radius: 2px 2px 0 0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: linear-gradient(180deg, #0096dd 0%, #0073aa 100%);
+  }
+}
+
+.cfr2-no-data {
+  text-align: center;
+  color: #646970;
+  padding: 20px;
+  margin: 0;
+}
+
+.cfr2-stats-footer {
+  padding-top: 16px;
+  border-top: 1px solid #e2e4e7;
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: #646970;
+  }
+
+  a {
+    color: #0073aa;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.settings-section.cfr2-stats-section {
+  background: #fff;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: #1d2327;
+  }
+}
+
+// Bulk Actions Tab Styles
+.settings-section {
+  background: $bg-white;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: $text-color;
+  }
+}
+
+.cfr2-quick-stats,
+.cfr2-bulk-actions-section,
+.cfr2-progress-section,
+.cfr2-activity-log-section,
+.cfr2-error-summary-section {
+  @extend .settings-section;
+}
+
+.cfr2-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cfr2-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: $bg-color;
+  border: 1px solid $border-light;
+  border-radius: 4px;
+  text-align: center;
+
+  .cfr2-stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: $primary-color;
+    margin-bottom: 4px;
+  }
+
+  .cfr2-stat-label {
+    font-size: 13px;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.cfr2-bulk-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cfr2-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+// Progress Bar
+.cfr2-progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cfr2-progress-bar {
+  flex: 1;
+  height: 24px;
+  background: $bg-color;
+  border: 1px solid $border-light;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cfr2-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $primary-color 0%, $primary-hover 100%);
+  @include transition(width, 0.3s);
+  border-radius: 12px;
+}
+
+.cfr2-progress-percentage {
+  font-weight: 600;
+  color: $text-color;
+  min-width: 45px;
+  text-align: right;
+}
+
+.cfr2-progress-details {
+  p {
+    margin: 8px 0;
+    color: $text-muted;
+
+    strong {
+      color: $text-color;
+    }
+  }
+
+  .cfr2-current-item {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+  }
+}
+
+// Activity Log
+.cfr2-activity-log {
+  max-height: 300px;
+  overflow-y: auto;
+  background: $bg-color;
+  border: 1px solid $border-light;
+  border-radius: 4px;
+  padding: 12px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $bg-color;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $border-color;
+    border-radius: 4px;
+
+    &:hover {
+      background: $text-muted;
+    }
+  }
+}
+
+.cfr2-log-entry {
+  display: grid;
+  grid-template-columns: 80px 30px 1fr 2fr;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: $bg-white;
+  border: 1px solid $border-light;
+  border-radius: 4px;
+  font-size: 13px;
+  align-items: center;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .cfr2-log-time {
+    color: $text-muted;
+    font-family: Consolas, Monaco, monospace;
+  }
+
+  .cfr2-log-status {
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .cfr2-log-filename {
+    color: $text-color;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cfr2-log-message {
+    color: $text-muted;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.cfr2-log-success {
+    border-left: 3px solid $success-color;
+  }
+
+  &.cfr2-log-error {
+    border-left: 3px solid $error-color;
+  }
+}
+
+// Error Summary
+.cfr2-error-summary {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.cfr2-error-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #fcf0f0;
+  border: 1px solid $error-color;
+  border-radius: 4px;
+
+  .cfr2-error-details {
+    flex: 1;
+
+    .cfr2-error-filename {
+      font-weight: 600;
+      color: $text-color;
+      margin-bottom: 4px;
+    }
+
+    .cfr2-error-message {
+      font-size: 13px;
+      color: $text-muted;
+    }
+  }
+
+  .cfr2-retry-single {
+    margin-left: 12px;
+  }
+}
+
+// Responsive adjustments
+@media screen and (max-width: 782px) {
+  .cfr2-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cfr2-log-entry {
+    grid-template-columns: 1fr;
+    gap: 4px;
+
+    .cfr2-log-time {
+      font-size: 11px;
+    }
+  }
+
+  .cfr2-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

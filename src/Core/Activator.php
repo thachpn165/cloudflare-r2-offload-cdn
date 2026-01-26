@@ -9,6 +9,8 @@ namespace ThachPN165\CFR2OffLoad\Core;
 
 defined( 'ABSPATH' ) || exit;
 
+use ThachPN165\CFR2OffLoad\Database\Schema;
+
 /**
  * Activator class - runs on plugin activation.
  */
@@ -36,6 +38,14 @@ class Activator {
 				'Plugin Activation Error',
 				array( 'back_link' => true )
 			);
+		}
+
+		// Create database tables.
+		Schema::create_tables();
+
+		// Schedule stats cleanup.
+		if ( ! wp_next_scheduled( 'cfr2_cleanup_stats' ) ) {
+			wp_schedule_event( time(), 'weekly', 'cfr2_cleanup_stats' );
 		}
 
 		// Create default options.

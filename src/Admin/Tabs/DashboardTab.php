@@ -9,6 +9,8 @@ namespace ThachPN165\CFR2OffLoad\Admin\Tabs;
 
 defined( 'ABSPATH' ) || exit;
 
+use ThachPN165\CFR2OffLoad\Admin\Widgets\StatsWidget;
+
 /**
  * DashboardTab class - renders the dashboard tab content.
  */
@@ -25,9 +27,78 @@ class DashboardTab {
 
 			<?php
 			self::render_notices();
+			self::render_usage_statistics();
+			self::render_quick_stats();
 			self::render_plugin_info();
 			self::render_usage_guides();
 			?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render quick stats section.
+	 */
+	private static function render_quick_stats(): void {
+		global $wpdb;
+
+		// Get stats.
+		$total_attachments = wp_count_posts( 'attachment' );
+		$total_count       = $total_attachments->inherit ?? 0;
+
+		$offloaded_count = $wpdb->get_var(
+			"SELECT COUNT(DISTINCT post_id)
+			 FROM {$wpdb->postmeta}
+			 WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"
+		);
+
+		$pending_count = $wpdb->get_var(
+			"SELECT COUNT(DISTINCT attachment_id)
+			 FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE status IN ('pending', 'processing')"
+		);
+
+		$local_count = $total_count - $offloaded_count - $pending_count;
+		?>
+		<div class="settings-section cfr2-quick-stats">
+			<h3><?php esc_html_e( 'Media Overview', 'cloudflare-r2-offload-cdn' ); ?></h3>
+
+			<div class="cfr2-stats-row">
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $total_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Total Media', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $offloaded_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Offloaded', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $pending_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Pending', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+				<div class="cfr2-stat">
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $local_count ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Local', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+			</div>
+
+			<p style="margin-top: 16px; text-align: center;">
+				<a href="#" class="button" data-tab="bulk-actions" id="goto-bulk-actions">
+					<?php esc_html_e( 'Go to Bulk Actions', 'cloudflare-r2-offload-cdn' ); ?> &rarr;
+				</a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render usage statistics section.
+	 */
+	private static function render_usage_statistics(): void {
+		?>
+		<div class="settings-section cfr2-stats-section">
+			<h3><?php esc_html_e( 'Usage Statistics', 'cloudflare-r2-offload-cdn' ); ?></h3>
+			<?php StatsWidget::render(); ?>
 		</div>
 		<?php
 	}

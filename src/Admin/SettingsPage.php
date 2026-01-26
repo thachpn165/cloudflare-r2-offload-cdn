@@ -8,8 +8,10 @@
 namespace ThachPN165\CFR2OffLoad\Admin;
 
 use ThachPN165\CFR2OffLoad\Admin\Tabs\DashboardTab;
-use ThachPN165\CFR2OffLoad\Admin\Tabs\GeneralTab;
-use ThachPN165\CFR2OffLoad\Admin\Tabs\AdvancedTab;
+use ThachPN165\CFR2OffLoad\Admin\Tabs\StorageTab;
+use ThachPN165\CFR2OffLoad\Admin\Tabs\CdnTab;
+use ThachPN165\CFR2OffLoad\Admin\Tabs\OffloadTab;
+use ThachPN165\CFR2OffLoad\Admin\Tabs\BulkActionsTab;
 use ThachPN165\CFR2OffLoad\Admin\Tabs\IntegrationsTab;
 
 defined( 'ABSPATH' ) || exit;
@@ -61,13 +63,21 @@ class SettingsPage {
 				'label' => __( 'Dashboard', 'cloudflare-r2-offload-cdn' ),
 				'icon'  => 'dashicons-dashboard',
 			),
-			'general'      => array(
-				'label' => __( 'General', 'cloudflare-r2-offload-cdn' ),
-				'icon'  => 'dashicons-admin-settings',
+			'storage'      => array(
+				'label' => __( 'Storage', 'cloudflare-r2-offload-cdn' ),
+				'icon'  => 'dashicons-cloud-saved',
 			),
-			'advanced'     => array(
-				'label' => __( 'Advanced', 'cloudflare-r2-offload-cdn' ),
-				'icon'  => 'dashicons-admin-tools',
+			'cdn'          => array(
+				'label' => __( 'CDN', 'cloudflare-r2-offload-cdn' ),
+				'icon'  => 'dashicons-performance',
+			),
+			'offload'      => array(
+				'label' => __( 'Offload', 'cloudflare-r2-offload-cdn' ),
+				'icon'  => 'dashicons-upload',
+			),
+			'bulk-actions' => array(
+				'label' => __( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ),
+				'icon'  => 'dashicons-update',
 			),
 			'integrations' => array(
 				'label' => __( 'Integrations', 'cloudflare-r2-offload-cdn' ),
@@ -115,8 +125,10 @@ class SettingsPage {
 			<form id="cloudflare-r2-offload-cdn-settings-form">
 				<?php wp_nonce_field( 'cloudflare_r2_offload_cdn_save_settings', 'cloudflare_r2_offload_cdn_nonce' ); ?>
 
-				<?php GeneralTab::render( $settings ); ?>
-				<?php AdvancedTab::render( $settings ); ?>
+				<?php StorageTab::render( $settings ); ?>
+				<?php CdnTab::render( $settings ); ?>
+				<?php OffloadTab::render( $settings ); ?>
+				<?php BulkActionsTab::render(); ?>
 				<?php IntegrationsTab::render( $settings ); ?>
 
 				<div class="cloudflare-r2-offload-cdn-form-actions">
