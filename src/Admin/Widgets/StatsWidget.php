@@ -41,22 +41,12 @@ class StatsWidget {
 		$analytics = self::get_cached_analytics( $settings );
 
 		$total_requests = $analytics['total_requests'] ?? 0;
-		$total_errors   = $analytics['total_errors'] ?? 0;
-		$success_rate   = $total_requests > 0 ? ( ( $total_requests - $total_errors ) / $total_requests ) * 100 : 0;
 		?>
 		<div class="cfr2-stats-widget">
 			<div class="cfr2-stats-summary">
-				<div class="cfr2-stat-item">
+				<div class="cfr2-stat-item cfr2-stat-single">
 					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $total_requests ) ); ?></span>
 					<span class="cfr2-stat-label"><?php esc_html_e( 'Requests This Month', 'cloudflare-r2-offload-cdn' ); ?></span>
-				</div>
-				<div class="cfr2-stat-item">
-					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $success_rate, 1 ) ); ?>%</span>
-					<span class="cfr2-stat-label"><?php esc_html_e( 'Success Rate', 'cloudflare-r2-offload-cdn' ); ?></span>
-				</div>
-				<div class="cfr2-stat-item">
-					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $total_errors ) ); ?></span>
-					<span class="cfr2-stat-label"><?php esc_html_e( 'Errors', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
 			</div>
 
@@ -92,8 +82,6 @@ class StatsWidget {
 	private static function get_cached_analytics( array $settings ): array {
 		$default = array(
 			'total_requests' => 0,
-			'total_errors'   => 0,
-			'daily'          => array(),
 		);
 
 		// Check if worker is deployed.
