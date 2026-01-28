@@ -62,6 +62,9 @@ class URLRewriter implements HookableInterface {
 		if ( $has_cdn ) {
 			add_filter( 'wp_get_attachment_image_src', array( $this, 'rewrite_image_src' ), 99, 4 );
 			add_filter( 'wp_calculate_image_srcset', array( $this, 'generate_srcset' ), 99, 5 );
+
+			// Wrap images in <picture> element for AVIF/WebP support (WP 6.0+).
+			add_filter( 'wp_content_img_tag', array( $this, 'wrap_with_picture_element' ), 10, 3 );
 		}
 	}
 
@@ -250,6 +253,123 @@ class URLRewriter implements HookableInterface {
 		}
 
 		return $attr;
+	}
+
+	/**
+	 * Wrap img tag with picture element for AVIF/WebP support.
+	 *
+	 * @param string $filtered_image Full img tag.
+	 * @param string $context Context (the_content, etc).
+	 * @param int    $attachment_id Attachment ID.
+	 * @return string Modified HTML with picture element.
+	 */
+	public function wrap_with_picture_element( string $filtered_image, string $context, int $attachment_id ): string {
+		// Skip if already wrapped in picture element (prevent double-wrapping).
+		if ( str_contains( $filtered_image, '<picture' ) || str_contains( $filtered_image, 'data-cfr2-picture' ) ) {
+			return $filtered_image;
+		}
+
+		// Skip if not offloaded or CDN not available.
+		$is_offloaded = get_post_meta( $attachment_id, '_cfr2_offloaded', true );
+		if ( ! $is_offloaded || ! $this->cdn_available ) {
+			return $filtered_image;
+		}
+
+		$r2_key = get_post_meta( $attachment_id, '_cfr2_r2_key', true );
+		if ( ! $r2_key ) {
+			return $filtered_image;
+		}
+
+		// Skip non-image formats.
+		if ( ! preg_match( '/\.(jpe?g|png|gif)$/i', $r2_key ) ) {
+			return $filtered_image;
+		}
+
+		// Get image metadata for original width.
+		$image_meta     = wp_get_attachment_metadata( $attachment_id );
+		$original_width = $image_meta['width'] ?? 1920;
+		$quality        = $this->settings['quality'] ?? 85;
+		$enable_avif    = ! empty( $this->settings['enable_avif'] );
+
+		// Extract sizes attribute from img tag.
+		$sizes = '100vw';
+		if ( preg_match( '/sizes=["\']([^"\']+)["\']/', $filtered_image, $matches ) ) {
+			$sizes = $matches[1];
+		}
+
+		// Build srcsets for different formats.
+		$avif_srcset = $this->build_format_srcset( $r2_key, 'avif', $original_width, $quality );
+		$webp_srcset = $this->build_format_srcset( $r2_key, 'webp', $original_width, $quality );
+
+		// Build picture element with marker to prevent double-wrapping.
+		$picture = '<picture data-cfr2-picture="1">';
+
+		// AVIF source (if enabled).
+		if ( $enable_avif && $avif_srcset ) {
+			$picture .= sprintf(
+				'<source type="image/avif" srcset="%s" sizes="%s">',
+				esc_attr( $avif_srcset ),
+				esc_attr( $sizes )
+			);
+		}
+
+		// WebP source.
+		if ( $webp_srcset ) {
+			$picture .= sprintf(
+				'<source type="image/webp" srcset="%s" sizes="%s">',
+				esc_attr( $webp_srcset ),
+				esc_attr( $sizes )
+			);
+		}
+
+		// Original img tag as fallback.
+		$picture .= $filtered_image;
+		$picture .= '</picture>';
+
+		return $picture;
+	}
+
+	/**
+	 * Build srcset for specific format.
+	 *
+	 * @param string $r2_key R2 object key.
+	 * @param string $format Target format (avif, webp).
+	 * @param int    $original_width Original image width.
+	 * @param int    $quality Image quality.
+	 * @return string Srcset string.
+	 */
+	private function build_format_srcset( string $r2_key, string $format, int $original_width, int $quality ): string {
+		$srcset_parts = array();
+
+		foreach ( self::BREAKPOINTS as $width ) {
+			if ( $width > $original_width ) {
+				continue;
+			}
+
+			$url            = $this->build_cdn_url(
+				$r2_key,
+				array(
+					'w' => $width,
+					'q' => $quality,
+					'f' => $format,
+				)
+			);
+			$srcset_parts[] = "{$url} {$width}w";
+		}
+
+		// Add original size.
+		if ( ! in_array( $original_width, self::BREAKPOINTS, true ) ) {
+			$url            = $this->build_cdn_url(
+				$r2_key,
+				array(
+					'q' => $quality,
+					'f' => $format,
+				)
+			);
+			$srcset_parts[] = "{$url} {$original_width}w";
+		}
+
+		return implode( ', ', $srcset_parts );
 	}
 
 	/**
