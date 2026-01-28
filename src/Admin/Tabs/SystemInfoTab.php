@@ -254,7 +254,7 @@ class SystemInfoTab {
 		$lines[] = 'CDN Enabled: ' . ( ! empty( $settings['cdn_enabled'] ) ? 'Yes' : 'No' );
 		$lines[] = 'CDN URL: ' . ( $settings['cdn_url'] ?? 'Not set' );
 		$lines[] = 'Quality: ' . ( $settings['quality'] ?? 85 );
-		$lines[] = 'AVIF Enabled: ' . ( ! empty( $settings['enable_avif'] ) ? 'Yes' : 'No' );
+		$lines[] = 'Image Format: ' . ( $settings['image_format'] ?? 'webp' );
 		$lines[] = 'Smart Sizes: ' . ( ! empty( $settings['smart_sizes'] ) ? 'Yes' : 'No' );
 		$lines[] = 'Worker Deployed: ' . ( ! empty( $settings['worker_deployed'] ) ? 'Yes' : 'No' );
 		$lines[] = 'Worker Name: ' . ( $settings['worker_name'] ?? 'Not set' );

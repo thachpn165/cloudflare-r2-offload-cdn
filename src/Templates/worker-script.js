@@ -89,11 +89,12 @@ async function handleImageTransform(request, env, key, url, baseHeaders) {
 		options.cf.image.fit = fit;
 	}
 
-	// Format negotiation
+	// Format negotiation based on IMAGE_FORMAT setting (original, webp, avif)
+	const imageFormat = env.IMAGE_FORMAT || 'webp';
 	const format = url.searchParams.get('f');
-	if (format === 'auto') {
+	if (format === 'auto' && imageFormat !== 'original') {
 		const accept = request.headers.get('Accept') || '';
-		if (env.ENABLE_AVIF === 'true' && /image\/avif/.test(accept)) {
+		if (imageFormat === 'avif' && /image\/avif/.test(accept)) {
 			options.cf.image.format = 'avif';
 		} else if (/image\/webp/.test(accept)) {
 			options.cf.image.format = 'webp';

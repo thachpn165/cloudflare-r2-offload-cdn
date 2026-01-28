@@ -101,16 +101,33 @@ class CdnTab {
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="enable_avif"><?php esc_html_e( 'Enable AVIF Format', 'cloudflare-r2-offload-cdn' ); ?></label>
+							<label><?php esc_html_e( 'Image Format', 'cloudflare-r2-offload-cdn' ); ?></label>
 						</th>
 						<td>
-							<input type="hidden" name="enable_avif" value="0" />
-							<label class="cloudflare-r2-offload-cdn-toggle">
-								<input type="checkbox" id="enable_avif" name="enable_avif" value="1"
-									<?php checked( 1, $settings['enable_avif'] ?? 0 ); ?> />
-								<span class="cloudflare-r2-offload-cdn-toggle-slider"></span>
-							</label>
-							<p class="description"><?php esc_html_e( 'Serve AVIF to supported browsers. Falls back to WebP/original.', 'cloudflare-r2-offload-cdn' ); ?></p>
+							<?php $image_format = $settings['image_format'] ?? 'webp'; ?>
+							<fieldset>
+								<label style="display: block; margin-bottom: 12px;">
+									<input type="radio" name="image_format" value="original" <?php checked( 'original', $image_format ); ?> />
+									<strong><?php esc_html_e( 'Original', 'cloudflare-r2-offload-cdn' ); ?></strong>
+									<span class="description" style="display: block; margin-left: 24px; color: #666;">
+										<?php esc_html_e( 'Keep original format (JPEG, PNG, GIF). No conversion, maximum compatibility. Larger file sizes.', 'cloudflare-r2-offload-cdn' ); ?>
+									</span>
+								</label>
+								<label style="display: block; margin-bottom: 12px;">
+									<input type="radio" name="image_format" value="webp" <?php checked( 'webp', $image_format ); ?> />
+									<strong><?php esc_html_e( 'WebP (Recommended)', 'cloudflare-r2-offload-cdn' ); ?></strong>
+									<span class="description" style="display: block; margin-left: 24px; color: #666;">
+										<?php esc_html_e( '25-35% smaller than JPEG. Supported by 97%+ browsers. Best balance of compression and compatibility.', 'cloudflare-r2-offload-cdn' ); ?>
+									</span>
+								</label>
+								<label style="display: block; margin-bottom: 0;">
+									<input type="radio" name="image_format" value="avif" <?php checked( 'avif', $image_format ); ?> />
+									<strong><?php esc_html_e( 'AVIF', 'cloudflare-r2-offload-cdn' ); ?></strong>
+									<span class="description" style="display: block; margin-left: 24px; color: #666;">
+										<?php esc_html_e( '50% smaller than JPEG. Best compression. Supported by 93%+ browsers. Falls back to WebP for older browsers.', 'cloudflare-r2-offload-cdn' ); ?>
+									</span>
+								</label>
+							</fieldset>
 						</td>
 					</tr>
 					<tr>

@@ -183,11 +183,11 @@ class WorkerDeployer {
 			);
 		}
 
-		// AVIF support flag.
+		// Image format setting (original, webp, avif).
 		$bindings[] = array(
 			'type' => 'plain_text',
-			'name' => 'ENABLE_AVIF',
-			'text' => ! empty( $config['enable_avif'] ) ? 'true' : 'false',
+			'name' => 'IMAGE_FORMAT',
+			'text' => $config['image_format'] ?? 'webp',
 		);
 
 		return $bindings;

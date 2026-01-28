@@ -137,7 +137,7 @@ class AdminMenu implements HookableInterface {
 			'cdn_enabled'             => ! empty( $_POST['cdn_enabled'] ) ? 1 : 0,
 			'cdn_url'                 => esc_url_raw( wp_unslash( $_POST['cdn_url'] ?? '' ) ),
 			'quality'                 => absint( $_POST['quality'] ?? 85 ),
-			'enable_avif'             => ! empty( $_POST['enable_avif'] ) ? 1 : 0,
+			'image_format'            => sanitize_text_field( wp_unslash( $_POST['image_format'] ?? 'webp' ) ),
 			'smart_sizes'             => ! empty( $_POST['smart_sizes'] ) ? 1 : 0,
 			'content_max_width'       => absint( $_POST['content_max_width'] ?? 800 ),
 			'cf_api_token'            => sanitize_text_field( wp_unslash( $_POST['cf_api_token'] ?? '' ) ),
@@ -214,7 +214,10 @@ class AdminMenu implements HookableInterface {
 		$quality              = absint( $input['quality'] ?? 85 );
 		$sanitized['quality'] = max( 1, min( $quality, 100 ) );
 
-		$sanitized['enable_avif'] = ! empty( $input['enable_avif'] ) ? 1 : 0;
+		// Image format: original, webp, or avif.
+		$allowed_formats            = array( 'original', 'webp', 'avif' );
+		$image_format               = $input['image_format'] ?? 'webp';
+		$sanitized['image_format'] = in_array( $image_format, $allowed_formats, true ) ? $image_format : 'webp';
 
 		// Smart sizes settings.
 		$sanitized['smart_sizes'] = ! empty( $input['smart_sizes'] ) ? 1 : 0;
@@ -352,7 +355,7 @@ class AdminMenu implements HookableInterface {
 			'cdn_enabled'             => 0,
 			'cdn_url'                 => '',
 			'quality'                 => 85,
-			'enable_avif'             => 0,
+			'image_format'            => 'webp',
 			'smart_sizes'             => 0,
 			'content_max_width'       => 800,
 			'cf_api_token'            => '',
@@ -867,9 +870,9 @@ class AdminMenu implements HookableInterface {
 		// Deploy with R2 bucket binding (direct access).
 		$result = $deployer->deploy(
 			array(
-				'r2_bucket'      => $settings['r2_bucket'],
-				'custom_domain'  => $settings['cdn_url'] ?? '',
-				'enable_avif'    => ! empty( $settings['enable_avif'] ),
+				'r2_bucket'    => $settings['r2_bucket'],
+				'custom_domain' => $settings['cdn_url'] ?? '',
+				'image_format' => $settings['image_format'] ?? 'webp',
 			)
 		);
 

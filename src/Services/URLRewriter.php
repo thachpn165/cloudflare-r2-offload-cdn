@@ -289,28 +289,33 @@ class URLRewriter implements HookableInterface {
 		$image_meta     = wp_get_attachment_metadata( $attachment_id );
 		$original_width = $image_meta['width'] ?? 1920;
 		$quality        = $this->settings['quality'] ?? 85;
-		$enable_avif    = ! empty( $this->settings['enable_avif'] );
+		$image_format   = $this->settings['image_format'] ?? 'webp';
+
+		// If using original format, return without picture element wrapping.
+		if ( 'original' === $image_format ) {
+			return $filtered_image;
+		}
 
 		// Extract or calculate sizes attribute.
 		$sizes = $this->get_sizes_attribute( $filtered_image, $original_width );
 
-		// Build srcsets for different formats.
-		$avif_srcset = $this->build_format_srcset( $r2_key, 'avif', $original_width, $quality );
-		$webp_srcset = $this->build_format_srcset( $r2_key, 'webp', $original_width, $quality );
-
 		// Build picture element with marker to prevent double-wrapping.
 		$picture = '<picture data-cfr2-picture="1">';
 
-		// AVIF source (if enabled).
-		if ( $enable_avif && $avif_srcset ) {
-			$picture .= sprintf(
-				'<source type="image/avif" srcset="%s" sizes="%s">',
-				esc_attr( $avif_srcset ),
-				esc_attr( $sizes )
-			);
+		// AVIF source (if avif format selected).
+		if ( 'avif' === $image_format ) {
+			$avif_srcset = $this->build_format_srcset( $r2_key, 'avif', $original_width, $quality );
+			if ( $avif_srcset ) {
+				$picture .= sprintf(
+					'<source type="image/avif" srcset="%s" sizes="%s">',
+					esc_attr( $avif_srcset ),
+					esc_attr( $sizes )
+				);
+			}
 		}
 
-		// WebP source.
+		// WebP source (for both webp and avif formats - avif falls back to webp).
+		$webp_srcset = $this->build_format_srcset( $r2_key, 'webp', $original_width, $quality );
 		if ( $webp_srcset ) {
 			$picture .= sprintf(
 				'<source type="image/webp" srcset="%s" sizes="%s">',
