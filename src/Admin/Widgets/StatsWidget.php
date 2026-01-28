@@ -57,12 +57,7 @@ class StatsWidget {
 				</div>
 			</div>
 
-			<?php if ( ! empty( $analytics['daily'] ) ) : ?>
-				<div class="cfr2-stats-chart">
-					<h5><?php esc_html_e( 'Last 30 Days Requests', 'cloudflare-r2-offload-cdn' ); ?></h5>
-					<?php self::render_mini_chart( $analytics['daily'] ); ?>
-				</div>
-			<?php elseif ( ! $is_deployed ) : ?>
+			<?php if ( ! $is_deployed ) : ?>
 				<div class="cfr2-stats-notice">
 					<p><?php esc_html_e( 'Deploy the Worker to see analytics.', 'cloudflare-r2-offload-cdn' ); ?></p>
 				</div>
@@ -130,37 +125,6 @@ class StatsWidget {
 		set_transient( self::CACHE_KEY, $analytics, self::CACHE_DURATION );
 
 		return $analytics;
-	}
-
-	/**
-	 * Render mini bar chart.
-	 *
-	 * @param array $daily_stats Daily stats array.
-	 */
-	private static function render_mini_chart( array $daily_stats ): void {
-		if ( empty( $daily_stats ) ) {
-			echo '<p class="cfr2-no-data">' . esc_html__( 'No data yet', 'cloudflare-r2-offload-cdn' ) . '</p>';
-			return;
-		}
-
-		$max = max( array_column( $daily_stats, 'requests' ) );
-		$max = max( $max, 1 ); // Avoid division by zero.
-
-		?>
-		<div class="cfr2-mini-chart">
-			<?php foreach ( $daily_stats as $day ) : ?>
-				<?php
-				$requests     = $day['requests'] ?? 0;
-				$height       = ( $requests / $max ) * 100;
-				$date_display = ! empty( $day['date'] ) ? date_i18n( 'M j', strtotime( $day['date'] ) ) : '';
-				?>
-				<div class="cfr2-chart-bar"
-					 style="height: <?php echo esc_attr( max( 2, $height ) ); ?>%;"
-					 title="<?php echo esc_attr( "{$date_display}: {$requests} requests" ); ?>">
-				</div>
-			<?php endforeach; ?>
-		</div>
-		<?php
 	}
 
 	/**
