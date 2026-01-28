@@ -12,7 +12,6 @@ use ThachPN165\CFR2OffLoad\Admin\Tabs\StorageTab;
 use ThachPN165\CFR2OffLoad\Admin\Tabs\CdnTab;
 use ThachPN165\CFR2OffLoad\Admin\Tabs\OffloadTab;
 use ThachPN165\CFR2OffLoad\Admin\Tabs\BulkActionsTab;
-use ThachPN165\CFR2OffLoad\Admin\Tabs\IntegrationsTab;
 use ThachPN165\CFR2OffLoad\Admin\Tabs\SystemInfoTab;
 
 defined( 'ABSPATH' ) || exit;
@@ -80,10 +79,6 @@ class SettingsPage {
 				'label' => __( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ),
 				'icon'  => 'dashicons-update',
 			),
-			'integrations' => array(
-				'label' => __( 'Integrations', 'cloudflare-r2-offload-cdn' ),
-				'icon'  => 'dashicons-admin-plugins',
-			),
 			'system-info'  => array(
 				'label' => __( 'System Info', 'cloudflare-r2-offload-cdn' ),
 				'icon'  => 'dashicons-info',
@@ -134,7 +129,6 @@ class SettingsPage {
 				<?php CdnTab::render( $settings ); ?>
 				<?php OffloadTab::render( $settings ); ?>
 				<?php BulkActionsTab::render(); ?>
-				<?php IntegrationsTab::render( $settings ); ?>
 				<?php SystemInfoTab::render(); ?>
 
 				<div class="cloudflare-r2-offload-cdn-form-actions">

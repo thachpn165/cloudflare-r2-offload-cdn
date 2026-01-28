@@ -141,8 +141,6 @@ class AdminMenu implements HookableInterface {
 			'smart_sizes'             => ! empty( $_POST['smart_sizes'] ) ? 1 : 0,
 			'content_max_width'       => absint( $_POST['content_max_width'] ?? 800 ),
 			'cf_api_token'            => sanitize_text_field( wp_unslash( $_POST['cf_api_token'] ?? '' ) ),
-			'woocommerce_integration' => ! empty( $_POST['woocommerce_integration'] ) ? 1 : 0,
-			'gutenberg_integration'   => ! empty( $_POST['gutenberg_integration'] ) ? 1 : 0,
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
@@ -222,10 +220,6 @@ class AdminMenu implements HookableInterface {
 		$sanitized['smart_sizes'] = ! empty( $input['smart_sizes'] ) ? 1 : 0;
 		$content_max_width        = absint( $input['content_max_width'] ?? 800 );
 		$sanitized['content_max_width'] = max( 320, min( $content_max_width, 1920 ) );
-
-		// Integrations settings.
-		$sanitized['woocommerce_integration'] = ! empty( $input['woocommerce_integration'] ) ? 1 : 0;
-		$sanitized['gutenberg_integration']   = ! empty( $input['gutenberg_integration'] ) ? 1 : 0;
 
 		// Cloudflare API Token - only encrypt if not placeholder.
 		$cf_token = $input['cf_api_token'] ?? '';
@@ -362,8 +356,6 @@ class AdminMenu implements HookableInterface {
 			'smart_sizes'             => 0,
 			'content_max_width'       => 800,
 			'cf_api_token'            => '',
-			'woocommerce_integration' => 0,
-			'gutenberg_integration'   => 0,
 			'worker_deployed'         => false,
 			'worker_name'             => '',
 			'worker_deployed_at'      => '',
