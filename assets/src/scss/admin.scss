@@ -53,6 +53,8 @@ $text-muted: #646970;
   background: $bg-color;
   border-right: 1px solid $border-light;
   border-radius: 4px 0 0 4px;
+  display: flex;
+  flex-direction: column;
 
   .cloudflare-r2-offload-cdn-tabs {
     list-style: none;
@@ -94,6 +96,49 @@ $text-muted: #646970;
 
         .dashicons {
           color: $bg-white;
+        }
+      }
+    }
+  }
+
+  .cfr2-sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid $border-light;
+    text-align: center;
+
+    .cfr2-support-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      margin-bottom: 12px;
+
+      .dashicons {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .cfr2-plugin-info {
+      font-size: 11px;
+      color: $text-muted;
+      line-height: 1.6;
+
+      .cfr2-version {
+        display: block;
+        font-weight: 500;
+        color: $text-color;
+      }
+
+      a {
+        color: $primary-color;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
         }
       }
     }
@@ -557,6 +602,31 @@ $text-muted: #646970;
           font-size: 16px;
           width: 16px;
           height: 16px;
+        }
+      }
+    }
+
+    .cfr2-sidebar-footer {
+      flex-direction: row;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: none;
+      border-bottom: 1px solid $border-light;
+      padding: 12px 16px;
+
+      .cfr2-support-btn {
+        margin-bottom: 0;
+        width: auto;
+      }
+
+      .cfr2-plugin-info {
+        text-align: right;
+
+        .cfr2-version {
+          display: inline;
+          margin-right: 4px;
         }
       }
     }
@@ -1281,14 +1351,15 @@ $text-muted: #646970;
   }
 
   td {
-    padding: 12px 0;
+    padding: 8px 0;
     vertical-align: middle;
   }
 
   .cfr2-status-label {
     font-weight: 500;
     color: $text-color;
-    width: 40%;
+    width: 200px;
+    white-space: nowrap;
   }
 
   .cfr2-status-value {

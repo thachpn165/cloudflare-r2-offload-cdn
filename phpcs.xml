@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<ruleset name="CloudFlare R2 Offload CDN">
+	<description>WordPress Coding Standards for CloudFlare R2 Offload CDN plugin</description>
+
+	<!-- Scan these files -->
+	<file>./src</file>
+	<file>./cloudflare-r2-offload-cdn.php</file>
+	<file>./uninstall.php</file>
+
+	<!-- Exclude vendor and node_modules -->
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<exclude-pattern>*/assets/*</exclude-pattern>
+
+	<!-- Use WordPress Coding Standards -->
+	<rule ref="WordPress">
+		<!-- Allow short array syntax -->
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+		<!-- Allow PSR-4 file naming -->
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+	</rule>
+
+	<!-- Set correct text domain -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="cloudflare-r2-offload-cdn"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Set minimum WordPress version -->
+	<config name="minimum_wp_version" value="6.0"/>
+
+	<!-- PHP Compatibility -->
+	<rule ref="PHPCompatibilityWP"/>
+	<config name="testVersion" value="8.0-"/>
+</ruleset>

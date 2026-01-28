@@ -292,6 +292,51 @@ if ( ! function_exists( 'add_filter' ) ) {
 	}
 }
 
+if ( ! function_exists( 'register_setting' ) ) {
+	/**
+	 * Mock register_setting.
+	 *
+	 * @param string $group  Settings group.
+	 * @param string $name   Setting name.
+	 * @param array  $args   Setting args.
+	 * @return void
+	 */
+	function register_setting( $group, $name, $args = array() ) {
+		// Mock - do nothing.
+	}
+}
+
+if ( ! function_exists( 'add_menu_page' ) ) {
+	/**
+	 * Mock add_menu_page.
+	 *
+	 * @param string $page_title Page title.
+	 * @param string $menu_title Menu title.
+	 * @param string $capability Capability.
+	 * @param string $menu_slug Menu slug.
+	 * @param callable $function Callback function.
+	 * @param string $icon_url Icon URL.
+	 * @param int $position Position.
+	 * @return void
+	 */
+	function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $icon_url = '', $position = null ) {
+		// Mock - do nothing.
+	}
+}
+
+if ( ! function_exists( '__' ) ) {
+	/**
+	 * Mock translation function.
+	 *
+	 * @param string $text Text to translate.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	function __( $text, $domain = 'default' ) {
+		return $text;
+	}
+}
+
 if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', '/var/www/html/' );
 }

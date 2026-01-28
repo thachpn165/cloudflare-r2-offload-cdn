@@ -1,17 +1,17 @@
 <?php
 /**
  * Plugin Name: CloudFlare R2 Offload & CDN
- * Plugin URI:  https://example.com/cloudflare-r2-offload-cdn
- * Description: A WordPress plugin boilerplate.
+ * Plugin URI:  https://thachpham.com/plugins/cloudflare-r2-offload-cdn
+ * Description: Offload WordPress media to Cloudflare R2 storage and serve via CDN with automatic image optimization (WebP/AVIF, responsive sizes, quality control).
  * Version:           1.0.0
- * Author:      thachpn165
+ * Author:      ThachPham
  * Author URI:  https://thachpham.com
  * License:     GPL-2.0+
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: cloudflare-r2-offload-cdn
  * Domain Path: /languages
  * Requires at least: 6.0
- * Requires PHP: 7.4
+ * Requires PHP: 8.0
  *
  * @package CFR2OffLoad
  */

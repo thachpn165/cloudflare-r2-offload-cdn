@@ -81,11 +81,11 @@ class Schema {
 	public static function drop_tables(): void {
 		global $wpdb;
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema management requires direct queries.
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}cfr2_offload_status" );
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}cfr2_offload_queue" );
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}cfr2_stats" );
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 
 		delete_option( 'cfr2_db_version' );
 	}

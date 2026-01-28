@@ -60,10 +60,12 @@ class StatsWidget {
 				<div class="cfr2-stats-footer">
 					<p>
 						<?php
-						printf(
-							/* translators: %s: Cloudflare dashboard URL */
-							__( 'View detailed analytics in your <a href="%s" target="_blank" rel="noopener">Cloudflare Dashboard</a>', 'cloudflare-r2-offload-cdn' ),
-							esc_url( "https://dash.cloudflare.com/{$account_id}/workers/overview" )
+						echo wp_kses_post(
+							sprintf(
+								/* translators: %s: Cloudflare dashboard URL */
+								__( 'View detailed analytics in your <a href="%s" target="_blank" rel="noopener">Cloudflare Dashboard</a>', 'cloudflare-r2-offload-cdn' ),
+								esc_url( "https://dash.cloudflare.com/{$account_id}/workers/overview" )
+							)
 						);
 						?>
 					</p>

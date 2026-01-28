@@ -64,12 +64,13 @@ class OffloadTab {
 						<label for="keep_local_files"><?php esc_html_e( 'Keep Local Files', 'cloudflare-r2-offload-cdn' ); ?></label>
 					</th>
 					<td>
-						<input type="hidden" name="keep_local_files" value="1" />
+						<input type="hidden" name="keep_local_files" value="0" />
 						<label class="cloudflare-r2-offload-cdn-toggle">
-							<input type="checkbox" id="keep_local_files" name="keep_local_files" value="1" checked disabled />
+							<input type="checkbox" id="keep_local_files" name="keep_local_files" value="1"
+								<?php checked( 1, $settings['keep_local_files'] ?? 1 ); ?> />
 							<span class="cloudflare-r2-offload-cdn-toggle-slider"></span>
 						</label>
-						<p class="description"><?php esc_html_e( 'Keep local copies of files after offloading to R2. (Future feature - currently always enabled)', 'cloudflare-r2-offload-cdn' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Keep local copies of files after offloading to R2. Disable to save disk space (files will be served from R2/CDN).', 'cloudflare-r2-offload-cdn' ); ?></p>
 					</td>
 				</tr>
 			</table>

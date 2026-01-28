@@ -96,6 +96,7 @@ class RestApiOffloadHandler {
 				continue;
 			}
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom queue table.
 			$wpdb->insert(
 				$wpdb->prefix . 'cfr2_offload_queue',
 				array(

@@ -45,6 +45,7 @@ class QueueProcessor {
 		}
 
 		// Fetch pending items.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Queue processing requires fresh data.
 		$items = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT * FROM {$wpdb->prefix}cfr2_offload_queue
@@ -69,6 +70,7 @@ class QueueProcessor {
 
 		foreach ( $items as $item ) {
 			// Mark as processing.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
 			$wpdb->update(
 				$wpdb->prefix . 'cfr2_offload_queue',
 				array( 'status' => 'processing' ),
@@ -89,6 +91,7 @@ class QueueProcessor {
 			};
 
 			// Update queue status.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
 			$wpdb->update(
 				$wpdb->prefix . 'cfr2_offload_queue',
 				array(
@@ -115,6 +118,7 @@ class QueueProcessor {
 		}
 
 		// Schedule next batch if more pending.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Queue count for scheduling.
 		$remaining = $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}cfr2_offload_queue WHERE status = 'pending'"
 		);

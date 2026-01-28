@@ -9,20 +9,14 @@ namespace ThachPN165\CFR2OffLoad\Services;
 
 defined( 'ABSPATH' ) || exit;
 
+use ThachPN165\CFR2OffLoad\Constants\MetaKeys;
+use ThachPN165\CFR2OffLoad\Constants\Settings;
 use ThachPN165\CFR2OffLoad\Hooks\ExtensibilityHooks;
 
 /**
  * OffloadService class - coordinates offload operations.
  */
 class OffloadService {
-
-	/**
-	 * Meta keys for attachment tracking.
-	 */
-	private const META_OFFLOADED = '_cfr2_offloaded';
-	private const META_R2_URL = '_cfr2_r2_url';
-	private const META_R2_KEY = '_cfr2_r2_key';
-	private const META_LOCAL_URL = '_cfr2_local_url';
 
 	/**
 	 * R2Client instance.
@@ -52,6 +46,7 @@ class OffloadService {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom queue table.
 		$wpdb->insert(
 			$wpdb->prefix . 'cfr2_offload_queue',
 			array(
@@ -102,16 +97,16 @@ class OffloadService {
 
 		// Store local URL before offload.
 		$local_url = wp_get_attachment_url( $attachment_id );
-		update_post_meta( $attachment_id, self::META_LOCAL_URL, $local_url );
+		update_post_meta( $attachment_id, MetaKeys::LOCAL_URL, $local_url );
 
 		// Upload to R2.
 		$result = $this->r2->upload_file( $file_path, $r2_key );
 
 		if ( $result['success'] ) {
 			// Update meta.
-			update_post_meta( $attachment_id, self::META_OFFLOADED, true );
-			update_post_meta( $attachment_id, self::META_R2_URL, $result['url'] );
-			update_post_meta( $attachment_id, self::META_R2_KEY, $r2_key );
+			update_post_meta( $attachment_id, MetaKeys::OFFLOADED, true );
+			update_post_meta( $attachment_id, MetaKeys::R2_URL, $result['url'] );
+			update_post_meta( $attachment_id, MetaKeys::R2_KEY, $r2_key );
 
 			// Update database table.
 			$this->update_offload_status( $attachment_id, $r2_key, $result['url'], $file_path );
@@ -129,11 +124,15 @@ class OffloadService {
 				);
 			}
 
+			// Delete local files if keep_local_files is disabled.
+			$deleted_local = $this->maybe_delete_local_files( $attachment_id, $file_path, $thumb_results );
+
 			$success_result = array(
-				'success'    => true,
-				'url'        => $result['url'],
-				'thumbnails' => $thumb_results,
-				'message'    => __( 'Offloaded successfully', 'cloudflare-r2-offload-cdn' ) . $thumb_info,
+				'success'       => true,
+				'url'           => $result['url'],
+				'thumbnails'    => $thumb_results,
+				'local_deleted' => $deleted_local,
+				'message'       => __( 'Offloaded successfully', 'cloudflare-r2-offload-cdn' ) . $thumb_info,
 			);
 
 			// Fire after offload hook.
@@ -151,16 +150,21 @@ class OffloadService {
 	/**
 	 * Offload all thumbnail sizes.
 	 *
-	 * @param int $attachment_id Attachment ID.
-	 * @return array Results with success count and failed sizes.
+	 * @param int        $attachment_id Attachment ID.
+	 * @param array|null $metadata      Optional pre-fetched metadata.
+	 * @return array Results with success count, failed sizes, and metadata.
 	 */
-	private function offload_thumbnails( int $attachment_id ): array {
-		$metadata = wp_get_attachment_metadata( $attachment_id );
-		$results  = array(
+	private function offload_thumbnails( int $attachment_id, ?array $metadata = null ): array {
+		if ( null === $metadata ) {
+			$metadata = wp_get_attachment_metadata( $attachment_id );
+		}
+
+		$results = array(
 			'total'    => 0,
 			'success'  => 0,
 			'failed'   => array(),
 			'uploaded' => array(),
+			'metadata' => $metadata, // Pass metadata for reuse.
 		);
 
 		if ( empty( $metadata['sizes'] ) ) {
@@ -203,10 +207,66 @@ class OffloadService {
 
 		// Store thumbnail R2 keys in meta for later reference.
 		if ( ! empty( $results['uploaded'] ) ) {
-			update_post_meta( $attachment_id, '_cfr2_thumbnails', $results['uploaded'] );
+			update_post_meta( $attachment_id, MetaKeys::THUMBNAILS, $results['uploaded'] );
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Delete local files if keep_local_files setting is disabled.
+	 * Uses metadata from thumb_results to avoid re-fetching.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $file_path     Main file path.
+	 * @param array  $thumb_results Thumbnail upload results (includes metadata).
+	 * @return bool True if files were deleted, false otherwise.
+	 */
+	private function maybe_delete_local_files( int $attachment_id, string $file_path, array $thumb_results ): bool {
+		$settings = get_option( Settings::OPTION_KEY, array() );
+
+		// Default to keeping local files if setting not set.
+		if ( ! empty( $settings['keep_local_files'] ) ) {
+			return false;
+		}
+
+		$deleted = false;
+
+		// Delete main file.
+		if ( file_exists( $file_path ) ) {
+			wp_delete_file( $file_path );
+			$deleted = true;
+		}
+
+		// Delete thumbnails using metadata from thumb_results (avoids re-fetch).
+		if ( ! empty( $thumb_results['uploaded'] ) ) {
+			$metadata = $thumb_results['metadata'] ?? null;
+			$base_dir = dirname( $file_path );
+
+			if ( ! empty( $metadata['sizes'] ) ) {
+				foreach ( $metadata['sizes'] as $size => $data ) {
+					$thumb_path = $base_dir . '/' . $data['file'];
+					if ( file_exists( $thumb_path ) ) {
+						wp_delete_file( $thumb_path );
+					}
+				}
+			}
+		}
+
+		// Update offload_status table to reflect local_exists = 0.
+		if ( $deleted ) {
+			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
+			$wpdb->update(
+				$wpdb->prefix . 'cfr2_offload_status',
+				array( 'local_exists' => 0 ),
+				array( 'attachment_id' => $attachment_id ),
+				array( '%d' ),
+				array( '%d' )
+			);
+		}
+
+		return $deleted;
 	}
 
 	/**
@@ -221,6 +281,7 @@ class OffloadService {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom queue table.
 		$wpdb->insert(
 			$wpdb->prefix . 'cfr2_offload_queue',
 			array(
@@ -236,10 +297,8 @@ class OffloadService {
 			if ( ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
 				\as_schedule_single_action( time(), 'cfr2_process_queue' );
 			}
-		} else {
-			if ( ! wp_next_scheduled( 'cfr2_process_queue' ) ) {
+		} elseif ( ! wp_next_scheduled( 'cfr2_process_queue' ) ) {
 				wp_schedule_single_event( time(), 'cfr2_process_queue' );
-			}
 		}
 
 		return true;
@@ -256,12 +315,13 @@ class OffloadService {
 		ExtensibilityHooks::before_restore( $attachment_id );
 
 		// Clear offload meta.
-		delete_post_meta( $attachment_id, self::META_OFFLOADED );
-		delete_post_meta( $attachment_id, self::META_R2_URL );
-		delete_post_meta( $attachment_id, self::META_R2_KEY );
+		delete_post_meta( $attachment_id, MetaKeys::OFFLOADED );
+		delete_post_meta( $attachment_id, MetaKeys::R2_URL );
+		delete_post_meta( $attachment_id, MetaKeys::R2_KEY );
 
 		// Remove from offload_status table.
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table cleanup.
 		$wpdb->delete(
 			$wpdb->prefix . 'cfr2_offload_status',
 			array( 'attachment_id' => $attachment_id ),
@@ -283,7 +343,7 @@ class OffloadService {
 	 * @return bool True if offloaded, false otherwise.
 	 */
 	public function is_offloaded( int $attachment_id ): bool {
-		return (bool) get_post_meta( $attachment_id, self::META_OFFLOADED, true );
+		return (bool) get_post_meta( $attachment_id, MetaKeys::OFFLOADED, true );
 	}
 
 	/**
@@ -293,7 +353,7 @@ class OffloadService {
 	 * @return string|null R2 URL or null if not offloaded.
 	 */
 	public function get_r2_url( int $attachment_id ): ?string {
-		$url = get_post_meta( $attachment_id, self::META_R2_URL, true );
+		$url = get_post_meta( $attachment_id, MetaKeys::R2_URL, true );
 		return $url ? $url : null;
 	}
 
@@ -304,7 +364,7 @@ class OffloadService {
 	 * @return string|null Local URL or null if not stored.
 	 */
 	public function get_local_url( int $attachment_id ): ?string {
-		$url = get_post_meta( $attachment_id, self::META_LOCAL_URL, true );
+		$url = get_post_meta( $attachment_id, MetaKeys::LOCAL_URL, true );
 		return $url ? $url : null;
 	}
 
@@ -319,6 +379,7 @@ class OffloadService {
 	private function update_offload_status( int $attachment_id, string $r2_key, string $r2_url, string $local_path ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
 		$wpdb->replace(
 			$wpdb->prefix . 'cfr2_offload_status',
 			array(

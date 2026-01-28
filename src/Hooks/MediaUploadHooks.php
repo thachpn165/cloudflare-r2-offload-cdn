@@ -109,6 +109,7 @@ class MediaUploadHooks implements HookableInterface {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom queue table.
 		$wpdb->insert(
 			$wpdb->prefix . 'cfr2_offload_queue',
 			array(
@@ -120,6 +121,7 @@ class MediaUploadHooks implements HookableInterface {
 			array( '%d', '%s', '%s', '%s' )
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table cleanup.
 		$wpdb->delete(
 			$wpdb->prefix . 'cfr2_offload_status',
 			array( 'attachment_id' => $attachment_id ),

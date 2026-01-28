@@ -1,6 +1,6 @@
 {
     "name": "thachpn165/cloudflare-r2-offload-cdn",
-    "description": "WordPress plugin boilerplate",
+    "description": "Offload WordPress media to Cloudflare R2 storage with CDN and image optimization",
     "type": "wordpress-plugin",
     "license": "GPL-2.0+",
     "authors": [
@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "aws/aws-sdk-php": "^3.0"
     },
     "require-dev": {

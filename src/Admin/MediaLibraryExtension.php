@@ -9,6 +9,8 @@ namespace ThachPN165\CFR2OffLoad\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
+use ThachPN165\CFR2OffLoad\Constants\TransientKeys;
+use ThachPN165\CFR2OffLoad\Constants\CacheDuration;
 use ThachPN165\CFR2OffLoad\Interfaces\HookableInterface;
 use ThachPN165\CFR2OffLoad\Services\OffloadService;
 use ThachPN165\CFR2OffLoad\Services\R2Client;
@@ -22,9 +24,26 @@ class MediaLibraryExtension implements HookableInterface {
 	use CredentialsHelperTrait;
 
 	/**
+	 * Static cache for pending status checks (batch prefetched).
+	 *
+	 * @var array<int, bool>
+	 */
+	private static array $pending_cache = [];
+
+	/**
+	 * Flag to track if pending status has been prefetched.
+	 *
+	 * @var bool
+	 */
+	private static bool $pending_prefetched = false;
+
+	/**
 	 * Register hooks.
 	 */
 	public function register_hooks(): void {
+		// Prefetch pending status for batch performance.
+		add_action( 'pre_get_posts', array( $this, 'prefetch_pending_on_media_query' ) );
+
 		// Add column.
 		add_filter( 'manage_media_columns', array( $this, 'add_status_column' ) );
 		add_action( 'manage_media_custom_column', array( $this, 'render_status_column' ), 10, 2 );
@@ -46,6 +65,98 @@ class MediaLibraryExtension implements HookableInterface {
 		// Attachment details page.
 		add_filter( 'attachment_fields_to_edit', array( $this, 'add_attachment_fields' ), 10, 2 );
 		add_action( 'wp_ajax_cfr2_offload_attachment', array( $this, 'ajax_offload_attachment' ) );
+	}
+
+	/**
+	 * Prefetch pending status for media library query to optimize batch queries.
+	 *
+	 * @param \WP_Query $query The WP_Query instance.
+	 */
+	public function prefetch_pending_on_media_query( \WP_Query $query ): void {
+		if ( ! is_admin() || self::$pending_prefetched ) {
+			return;
+		}
+
+		// Only run on media library list screens.
+		if ( 'attachment' !== $query->get( 'post_type' ) ) {
+			return;
+		}
+
+		// Will be populated after query runs - hook into the_posts.
+		add_filter( 'the_posts', array( $this, 'prefetch_pending_status_batch' ), 10, 2 );
+	}
+
+	/**
+	 * Batch prefetch pending status for all attachments in the query.
+	 *
+	 * @param array     $posts Array of post objects.
+	 * @param \WP_Query $query The WP_Query instance.
+	 * @return array Unmodified posts array.
+	 */
+	public function prefetch_pending_status_batch( array $posts, \WP_Query $query ): array {
+		if ( self::$pending_prefetched || empty( $posts ) ) {
+			return $posts;
+		}
+
+		// Only process attachment queries.
+		if ( 'attachment' !== $query->get( 'post_type' ) ) {
+			return $posts;
+		}
+
+		$attachment_ids = wp_list_pluck( $posts, 'ID' );
+		self::prefetch_pending_status( $attachment_ids );
+		self::$pending_prefetched = true;
+
+		return $posts;
+	}
+
+	/**
+	 * Prefetch pending status for multiple attachment IDs in a single query.
+	 *
+	 * @param array $attachment_ids Array of attachment IDs.
+	 */
+	public static function prefetch_pending_status( array $attachment_ids ): void {
+		if ( empty( $attachment_ids ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$ids_placeholder = implode( ',', array_map( 'absint', $attachment_ids ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Batch optimization query.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IDs are sanitized with absint.
+		$pending_ids = $wpdb->get_col(
+			"SELECT DISTINCT attachment_id FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE attachment_id IN ({$ids_placeholder})
+			 AND status IN ('pending', 'processing')"
+		);
+
+		// Initialize all as not pending.
+		foreach ( $attachment_ids as $id ) {
+			self::$pending_cache[ (int) $id ] = false;
+		}
+
+		// Mark pending ones.
+		foreach ( $pending_ids as $id ) {
+			self::$pending_cache[ (int) $id ] = true;
+		}
+	}
+
+	/**
+	 * Get safe redirect URL - validates referer is within admin.
+	 *
+	 * @return string Safe redirect URL.
+	 */
+	private function get_safe_redirect_url(): string {
+		$redirect_url = wp_get_referer();
+
+		// Validate redirect URL is within admin area.
+		if ( ! $redirect_url || ! str_starts_with( $redirect_url, admin_url() ) ) {
+			$redirect_url = admin_url( 'upload.php' );
+		}
+
+		return $redirect_url;
 	}
 
 	/**
@@ -153,6 +264,7 @@ class MediaLibraryExtension implements HookableInterface {
 		$count = 0;
 		foreach ( $post_ids as $attachment_id ) {
 			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table for queue.
 			$wpdb->insert(
 				$wpdb->prefix . 'cfr2_offload_queue',
 				array(
@@ -179,7 +291,45 @@ class MediaLibraryExtension implements HookableInterface {
 	 */
 	public function show_bulk_action_notices(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+
+		// Show error from transient (secure - no URL param exposure).
+		if ( isset( $_GET['cfr2_error'] ) ) {
+			$user_id       = get_current_user_id();
+			$transient_key = TransientKeys::ERROR_PREFIX . $user_id;
+			$error_message = get_transient( $transient_key );
+
+			if ( $error_message ) {
+				delete_transient( $transient_key );
+				printf(
+					'<div class="notice notice-error is-dismissible"><p>%s</p></div>',
+					esc_html( $error_message )
+				);
+			} else {
+				// Fallback generic message if transient expired.
+				printf(
+					'<div class="notice notice-error is-dismissible"><p>%s</p></div>',
+					esc_html__( 'An error occurred during the operation.', 'cloudflare-r2-offload-cdn' )
+				);
+			}
+		}
+
+		// Show success notices.
+		if ( isset( $_GET['cfr2_offloaded'] ) ) {
+			printf(
+				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+				esc_html__( 'File offloaded to R2 successfully.', 'cloudflare-r2-offload-cdn' )
+			);
+		}
+
+		if ( isset( $_GET['cfr2_restored'] ) ) {
+			printf(
+				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+				esc_html__( 'File restored to local storage.', 'cloudflare-r2-offload-cdn' )
+			);
+		}
+
 		if ( ! isset( $_GET['cfr2_queued'] ) ) {
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 
@@ -191,7 +341,7 @@ class MediaLibraryExtension implements HookableInterface {
 			sprintf(
 				/* translators: %d: number of files */
 				esc_html( _n( '%d file queued for processing.', '%d files queued for processing.', $count, 'cloudflare-r2-offload-cdn' ) ),
-				$count
+				(int) $count
 			)
 		);
 	}
@@ -222,12 +372,15 @@ class MediaLibraryExtension implements HookableInterface {
 			delete_post_meta( $id, '_cfr2_offloaded' );
 		}
 
-		$result = $offload->offload( $id );
+		$result       = $offload->offload( $id );
+		$redirect_url = $this->get_safe_redirect_url();
 
 		if ( $result['success'] ) {
-			wp_safe_redirect( add_query_arg( 'cfr2_offloaded', 1, wp_get_referer() ) );
+			wp_safe_redirect( add_query_arg( 'cfr2_offloaded', 1, $redirect_url ) );
 		} else {
-			wp_safe_redirect( add_query_arg( 'cfr2_error', rawurlencode( $result['message'] ), wp_get_referer() ) );
+			// Store error in transient instead of exposing in URL.
+			set_transient( TransientKeys::ERROR_PREFIX . get_current_user_id(), $result['message'], CacheDuration::ERROR_TTL );
+			wp_safe_redirect( add_query_arg( 'cfr2_error', 1, $redirect_url ) );
 		}
 		exit;
 	}
@@ -249,12 +402,14 @@ class MediaLibraryExtension implements HookableInterface {
 			wp_die( esc_html__( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) );
 		}
 
-		$credentials = self::get_r2_credentials();
-		$r2          = new R2Client( $credentials );
-		$offload     = new OffloadService( $r2 );
+		$credentials  = self::get_r2_credentials();
+		$r2           = new R2Client( $credentials );
+		$offload      = new OffloadService( $r2 );
+		$redirect_url = $this->get_safe_redirect_url();
+
 		$offload->restore( $id );
 
-		wp_safe_redirect( add_query_arg( 'cfr2_restored', 1, wp_get_referer() ) );
+		wp_safe_redirect( add_query_arg( 'cfr2_restored', 1, $redirect_url ) );
 		exit;
 	}
 
@@ -353,18 +508,31 @@ class MediaLibraryExtension implements HookableInterface {
 
 	/**
 	 * Check if attachment is pending in queue.
+	 * Uses batch prefetched cache when available for performance.
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return bool True if pending, false otherwise.
 	 */
 	private function is_pending( int $attachment_id ): bool {
+		// Check static cache first (populated by batch prefetch).
+		if ( isset( self::$pending_cache[ $attachment_id ] ) ) {
+			return self::$pending_cache[ $attachment_id ];
+		}
+
+		// Fallback to single query if not prefetched.
 		global $wpdb;
-		return (bool) $wpdb->get_var(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Queue status should not be cached.
+		$is_pending = (bool) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->prefix}cfr2_offload_queue
 				 WHERE attachment_id = %d AND status IN ('pending', 'processing')",
 				$attachment_id
 			)
 		);
+
+		// Cache the result.
+		self::$pending_cache[ $attachment_id ] = $is_pending;
+
+		return $is_pending;
 	}
 }

@@ -132,6 +132,7 @@ class WooCommerceIntegration implements HookableInterface {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom queue table.
 		$wpdb->insert(
 			$wpdb->prefix . 'cfr2_offload_queue',
 			array(

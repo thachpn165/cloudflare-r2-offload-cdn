@@ -108,6 +108,17 @@ class SettingsPage {
 				endforeach;
 				?>
 			</ul>
+
+			<div class="cfr2-sidebar-footer">
+				<a href="https://thachpham.com/contact" target="_blank" rel="noopener" class="button cfr2-support-btn">
+					<span class="dashicons dashicons-sos"></span>
+					<?php esc_html_e( 'Get Support', 'cloudflare-r2-offload-cdn' ); ?>
+				</a>
+				<div class="cfr2-plugin-info">
+					<span class="cfr2-version">v<?php echo esc_html( \CFR2_VERSION ); ?></span>
+					<span class="cfr2-author"><?php esc_html_e( 'by', 'cloudflare-r2-offload-cdn' ); ?> <a href="https://thachpham.com" target="_blank" rel="noopener">ThachPham</a></span>
+				</div>
+			</div>
 		</div>
 		<?php
 	}

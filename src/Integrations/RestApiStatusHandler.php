@@ -41,6 +41,7 @@ class RestApiStatusHandler {
 
 		// Check queue status.
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Queue status requires fresh data.
 		$queue_status = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT status FROM {$wpdb->prefix}cfr2_offload_queue
@@ -76,6 +77,7 @@ class RestApiStatusHandler {
 
 		// Get offload counts.
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregating postmeta for stats.
 		$offloaded = (int) $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->postmeta}
 			 WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"

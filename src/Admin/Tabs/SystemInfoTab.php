@@ -84,10 +84,10 @@ class SystemInfoTab {
 		);
 
 		// PHP version.
-		$php_version    = PHP_VERSION;
-		$php_min        = '8.0';
-		$php_status     = version_compare( $php_version, $php_min, '>=' ) ? 'ok' : 'error';
-		$statuses[]     = array(
+		$php_version = PHP_VERSION;
+		$php_min     = '8.0';
+		$php_status  = version_compare( $php_version, $php_min, '>=' ) ? 'ok' : 'error';
+		$statuses[]  = array(
 			'label'  => __( 'PHP Version', 'cloudflare-r2-offload-cdn' ),
 			'value'  => $php_version . ( 'error' === $php_status ? " (min: {$php_min})" : '' ),
 			'status' => $php_status,
@@ -152,11 +152,11 @@ class SystemInfoTab {
 		);
 
 		// Memory limit.
-		$memory_limit   = ini_get( 'memory_limit' );
-		$memory_bytes   = wp_convert_hr_to_bytes( $memory_limit );
-		$memory_min     = 128 * 1024 * 1024; // 128MB.
-		$memory_status  = $memory_bytes >= $memory_min ? 'ok' : 'warning';
-		$statuses[]     = array(
+		$memory_limit  = ini_get( 'memory_limit' );
+		$memory_bytes  = wp_convert_hr_to_bytes( $memory_limit );
+		$memory_min    = 128 * 1024 * 1024; // 128MB.
+		$memory_status = $memory_bytes >= $memory_min ? 'ok' : 'warning';
+		$statuses[]    = array(
 			'label'  => __( 'PHP Memory Limit', 'cloudflare-r2-offload-cdn' ),
 			'value'  => $memory_limit,
 			'status' => $memory_status,
@@ -251,6 +251,7 @@ class SystemInfoTab {
 		$lines[] = 'CF API Token: ' . ( ! empty( $settings['cf_api_token'] ) ? 'Configured' : 'Not configured' );
 		$lines[] = 'Auto Offload: ' . ( ! empty( $settings['auto_offload'] ) ? 'Enabled' : 'Disabled' );
 		$lines[] = 'Batch Size: ' . ( $settings['batch_size'] ?? 25 );
+		$lines[] = 'Keep Local Files: ' . ( ! empty( $settings['keep_local_files'] ) ? 'Yes' : 'No' );
 		$lines[] = 'CDN Enabled: ' . ( ! empty( $settings['cdn_enabled'] ) ? 'Yes' : 'No' );
 		$lines[] = 'CDN URL: ' . ( $settings['cdn_url'] ?? 'Not set' );
 		$lines[] = 'Quality: ' . ( $settings['quality'] ?? 85 );
@@ -265,14 +266,17 @@ class SystemInfoTab {
 		$total_attachments = wp_count_posts( 'attachment' );
 		$total_count       = $total_attachments->inherit ?? 0;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Debug info aggregation.
 		$offloaded_count = $wpdb->get_var(
 			"SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta} WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
 		$pending_count = $wpdb->get_var(
 			"SELECT COUNT(DISTINCT attachment_id) FROM {$wpdb->prefix}cfr2_offload_queue WHERE status IN ('pending', 'processing')"
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
 		$failed_count = $wpdb->get_var(
 			"SELECT COUNT(DISTINCT attachment_id) FROM {$wpdb->prefix}cfr2_offload_queue WHERE status = 'failed'"
 		);
@@ -287,22 +291,23 @@ class SystemInfoTab {
 		// Database Tables.
 		$lines[] = '## Database Tables';
 		$tables  = array(
+			$wpdb->prefix . 'cfr2_offload_status',
 			$wpdb->prefix . 'cfr2_offload_queue',
 			$wpdb->prefix . 'cfr2_stats',
-			$wpdb->prefix . 'cfr2_activity_log',
 		);
 		foreach ( $tables as $table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Schema check.
 			$exists  = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
 			$lines[] = basename( $table ) . ': ' . ( $exists ? 'Exists' : 'Missing' );
 		}
 		$lines[] = '';
 
 		// Active Theme.
-		$lines[]       = '## Active Theme';
-		$theme         = wp_get_theme();
-		$lines[]       = 'Name: ' . $theme->get( 'Name' );
-		$lines[]       = 'Version: ' . $theme->get( 'Version' );
-		$parent_theme  = $theme->parent();
+		$lines[]      = '## Active Theme';
+		$theme        = wp_get_theme();
+		$lines[]      = 'Name: ' . $theme->get( 'Name' );
+		$lines[]      = 'Version: ' . $theme->get( 'Version' );
+		$parent_theme = $theme->parent();
 		if ( $parent_theme ) {
 			$lines[] = 'Parent Theme: ' . $parent_theme->get( 'Name' ) . ' ' . $parent_theme->get( 'Version' );
 		}

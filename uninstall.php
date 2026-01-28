@@ -24,6 +24,7 @@ delete_option( 'cloudflare_r2_offload_cdn_settings' );
 global $wpdb;
 
 // Delete rate limiting and cache transients.
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup requires direct query.
 $wpdb->query(
 	$wpdb->prepare(
 		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",

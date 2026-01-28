@@ -9,6 +9,8 @@ namespace ThachPN165\CFR2OffLoad\Admin\Tabs;
 
 defined( 'ABSPATH' ) || exit;
 
+use ThachPN165\CFR2OffLoad\Constants\QueueStatus;
+
 /**
  * BulkActionsTab class - renders the bulk actions tab content.
  */
@@ -20,30 +22,25 @@ class BulkActionsTab {
 	public static function render(): void {
 		global $wpdb;
 
-		// Get stats.
-		$total_attachments = wp_count_posts( 'attachment' );
-		$total_count       = $total_attachments->inherit ?? 0;
+		// Get stats from cached source.
+		$stats = DashboardTab::get_cached_stats();
 
-		$offloaded_count = $wpdb->get_var(
-			"SELECT COUNT(DISTINCT post_id)
-			 FROM {$wpdb->postmeta}
-			 WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"
-		);
+		$total_count     = $stats['total'];
+		$offloaded_count = $stats['offloaded'];
+		$pending_count   = $stats['pending'];
+		$local_count     = $stats['local'];
 
-		$pending_count = $wpdb->get_var(
-			"SELECT COUNT(DISTINCT attachment_id)
-			 FROM {$wpdb->prefix}cfr2_offload_queue
-			 WHERE status IN ('pending', 'processing')"
-		);
-
+		// Failed count needs fresh query (not cached to show accurate retry count).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
 		$failed_count = $wpdb->get_var(
-			"SELECT COUNT(DISTINCT attachment_id)
-			 FROM {$wpdb->prefix}cfr2_offload_queue
-			 WHERE status = 'failed'
-			 AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT attachment_id)
+				 FROM {$wpdb->prefix}cfr2_offload_queue
+				 WHERE status = %s
+				 AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)",
+				QueueStatus::FAILED
+			)
 		);
-
-		$local_count = $total_count - $offloaded_count - $pending_count;
 		?>
 		<div class="cloudflare-r2-offload-cdn-tab-content" id="tab-bulk-actions">
 			<h2><?php esc_html_e( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ); ?></h2>

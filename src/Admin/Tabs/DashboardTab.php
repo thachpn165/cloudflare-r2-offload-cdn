@@ -10,6 +10,9 @@ namespace ThachPN165\CFR2OffLoad\Admin\Tabs;
 defined( 'ABSPATH' ) || exit;
 
 use ThachPN165\CFR2OffLoad\Admin\Widgets\StatsWidget;
+use ThachPN165\CFR2OffLoad\Constants\TransientKeys;
+use ThachPN165\CFR2OffLoad\Constants\CacheDuration;
+use ThachPN165\CFR2OffLoad\Constants\MetaKeys;
 
 /**
  * DashboardTab class - renders the dashboard tab content.
@@ -38,24 +41,12 @@ class DashboardTab {
 	 * Render quick stats section.
 	 */
 	private static function render_quick_stats(): void {
-		global $wpdb;
+		$stats = self::get_cached_stats();
 
-		$total_attachments = wp_count_posts( 'attachment' );
-		$total_count       = $total_attachments->inherit ?? 0;
-
-		$offloaded_count = $wpdb->get_var(
-			"SELECT COUNT(DISTINCT post_id)
-			 FROM {$wpdb->postmeta}
-			 WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"
-		);
-
-		$pending_count = $wpdb->get_var(
-			"SELECT COUNT(DISTINCT attachment_id)
-			 FROM {$wpdb->prefix}cfr2_offload_queue
-			 WHERE status IN ('pending', 'processing')"
-		);
-
-		$local_count = max( 0, $total_count - $offloaded_count - $pending_count );
+		$total_count     = $stats['total'];
+		$offloaded_count = $stats['offloaded'];
+		$pending_count   = $stats['pending'];
+		$local_count     = $stats['local'];
 		?>
 		<div class="settings-section cfr2-quick-stats">
 			<h3><?php esc_html_e( 'Media Overview', 'cloudflare-r2-offload-cdn' ); ?></h3>
@@ -98,6 +89,64 @@ class DashboardTab {
 			<?php StatsWidget::render(); ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get cached dashboard stats with 5-minute transient caching.
+	 *
+	 * @return array Stats array with total, offloaded, pending, local counts.
+	 */
+	public static function get_cached_stats(): array {
+		$cache_key = TransientKeys::DASHBOARD_STATS;
+		$stats     = get_transient( $cache_key );
+
+		if ( false !== $stats ) {
+			return $stats;
+		}
+
+		// Compute fresh stats.
+		$stats = self::compute_stats();
+
+		// Cache for 5 minutes.
+		set_transient( $cache_key, $stats, CacheDuration::STATS_CACHE );
+
+		return $stats;
+	}
+
+	/**
+	 * Compute dashboard stats from database.
+	 *
+	 * @return array Stats array.
+	 */
+	private static function compute_stats(): array {
+		global $wpdb;
+
+		$total_attachments = wp_count_posts( 'attachment' );
+		$total_count       = $total_attachments->inherit ?? 0;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregating postmeta for stats.
+		$offloaded_count = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT post_id)
+				 FROM {$wpdb->postmeta}
+				 WHERE meta_key = %s AND meta_value = '1'",
+				MetaKeys::OFFLOADED
+			)
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
+		$pending_count = $wpdb->get_var(
+			"SELECT COUNT(DISTINCT attachment_id)
+			 FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE status IN ('pending', 'processing')"
+		);
+
+		return array(
+			'total'     => (int) $total_count,
+			'offloaded' => (int) $offloaded_count,
+			'pending'   => (int) $pending_count,
+			'local'     => max( 0, $total_count - $offloaded_count - $pending_count ),
+		);
 	}
 
 	/**
