@@ -1261,3 +1261,77 @@ $text-muted: #646970;
 .cfr2-terminal-line {
   animation: terminalFadeIn 0.2s ease;
 }
+
+// System Info Tab Styles
+.cfr2-system-status,
+.cfr2-debug-info {
+  @extend .settings-section;
+}
+
+.cfr2-status-table {
+  border-collapse: collapse;
+  width: 100%;
+
+  tr {
+    border-bottom: 1px solid $border-light;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: 12px 0;
+    vertical-align: middle;
+  }
+
+  .cfr2-status-label {
+    font-weight: 500;
+    color: $text-color;
+    width: 40%;
+  }
+
+  .cfr2-status-value {
+    .dashicons {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+  }
+
+  .cfr2-status-ok {
+    color: $success-color;
+  }
+
+  .cfr2-status-warning {
+    color: #dba617;
+  }
+
+  .cfr2-status-error {
+    color: $error-color;
+  }
+
+  .cfr2-status-info {
+    color: $text-muted;
+  }
+}
+
+.cfr2-debug-textarea {
+  width: 100%;
+  font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 16px;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+  }
+}

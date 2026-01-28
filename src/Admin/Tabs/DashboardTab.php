@@ -29,7 +29,6 @@ class DashboardTab {
 			self::render_notices();
 			self::render_usage_statistics();
 			self::render_quick_stats();
-			self::render_plugin_info();
 			self::render_usage_guides();
 			?>
 		</div>
@@ -145,31 +144,6 @@ class DashboardTab {
 		}
 
 		return $notices;
-	}
-
-	/**
-	 * Render plugin info section.
-	 */
-	private static function render_plugin_info(): void {
-		?>
-		<div class="cloudflare-r2-offload-cdn-info-box">
-			<h3><?php esc_html_e( 'Plugin Information', 'cloudflare-r2-offload-cdn' ); ?></h3>
-			<ul class="cloudflare-r2-offload-cdn-info-list">
-				<li>
-					<span class="label"><?php esc_html_e( 'Version', 'cloudflare-r2-offload-cdn' ); ?></span>
-					<span class="value"><?php echo esc_html( CLOUDFLARE_R2_OFFLOAD_CDN_VERSION ); ?></span>
-				</li>
-				<li>
-					<span class="label"><?php esc_html_e( 'PHP Version', 'cloudflare-r2-offload-cdn' ); ?></span>
-					<span class="value"><?php echo esc_html( PHP_VERSION ); ?></span>
-				</li>
-				<li>
-					<span class="label"><?php esc_html_e( 'WordPress Version', 'cloudflare-r2-offload-cdn' ); ?></span>
-					<span class="value"><?php echo esc_html( get_bloginfo( 'version' ) ); ?></span>
-				</li>
-			</ul>
-		</div>
-		<?php
 	}
 
 	/**
