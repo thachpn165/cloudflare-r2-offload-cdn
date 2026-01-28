@@ -51,6 +51,9 @@ import '../scss/admin.scss';
       $('#cfr2-clear-log').on('click', this.handleClearLog.bind(this));
       $(document).on('click', '.cfr2-retry-single', this.handleRetrySingle.bind(this));
       $('#goto-bulk-actions').on('click', this.handleGotoBulkActions.bind(this));
+
+      // Media attachment detail page offload button.
+      $(document).on('click', '.cfr2-offload-btn', this.handleAttachmentOffload.bind(this));
     },
 
     /**
@@ -194,6 +197,10 @@ import '../scss/admin.scss';
         data: {
           action: 'cloudflare_r2_offload_cdn_test_r2',
           cloudflare_r2_offload_cdn_nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+          r2_account_id: $('#r2_account_id').val(),
+          r2_access_key_id: $('#r2_access_key_id').val(),
+          r2_secret_access_key: $('#r2_secret_access_key').val(),
+          r2_bucket: $('#r2_bucket').val(),
         },
         success: (response) => {
           if (response.success) {
@@ -621,6 +628,58 @@ import '../scss/admin.scss';
         },
         error: () => {
           this.showToast('Failed to retry item', 'error');
+        },
+      });
+    },
+
+    /**
+     * Handle offload from attachment details page.
+     *
+     * @param {Event} e Click event.
+     */
+    handleAttachmentOffload(e) {
+      e.preventDefault();
+
+      const $btn = $(e.currentTarget);
+      const attachmentId = $btn.data('id');
+      const nonce = $btn.data('nonce');
+      const $status = $btn.siblings('.cfr2-offload-status');
+
+      // Disable button and show loading.
+      $btn.prop('disabled', true).text('Offloading...');
+      $status.html('<span class="spinner is-active" style="float: none;"></span>');
+
+      $.ajax({
+        url: ajaxurl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_offload_attachment',
+          attachment_id: attachmentId,
+          nonce: nonce,
+        },
+        success: (response) => {
+          if (response.success) {
+            $status.html('<span style="color: #46b450;">✓ ' + response.data.message + '</span>');
+            $btn.hide();
+
+            // Update the status display after a short delay.
+            setTimeout(() => {
+              $btn.closest('td').find('span').first().html(
+                '<span style="color: #46b450; font-weight: bold;">' +
+                '<span class="dashicons dashicons-cloud" style="vertical-align: middle;"></span> ' +
+                'Offloaded to R2</span>' +
+                (response.data.url ? '<br><small style="color: #666;">' + response.data.url + '</small>' : '')
+              );
+              $status.empty();
+            }, 2000);
+          } else {
+            $status.html('<span style="color: #dc3232;">✗ ' + response.data.message + '</span>');
+            $btn.prop('disabled', false).text('Offload to R2');
+          }
+        },
+        error: () => {
+          $status.html('<span style="color: #dc3232;">✗ Request failed</span>');
+          $btn.prop('disabled', false).text('Offload to R2');
         },
       });
     },

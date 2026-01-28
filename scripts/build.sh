@@ -71,8 +71,7 @@ cmd_build_assets() {
 cmd_build() {
     log_info "Building plugin v${PLUGIN_VERSION}..."
 
-    # Clean first
-    rm -rf "$BUILD_DIR"
+    # Create dir if not exists (don't delete - preserves Docker mount)
     mkdir -p "$BUILD_DIR/$PLUGIN_SLUG"
 
     # Build assets first
@@ -102,20 +101,41 @@ cmd_build() {
         "vendor"
     )
 
-    # Copy files
-    for file in "${include_files[@]}"; do
-        if [ -f "$file" ]; then
-            cp "$file" "$BUILD_DIR/$PLUGIN_SLUG/"
-        fi
-    done
+    # Use rsync if available (preserves Docker mount, faster incremental)
+    if command -v rsync &> /dev/null; then
+        log_info "Using rsync for incremental sync..."
 
-    # Copy directories
-    for dir in "${include_dirs[@]}"; do
-        if [ -d "$dir" ]; then
-            mkdir -p "$BUILD_DIR/$PLUGIN_SLUG/$(dirname $dir)"
-            cp -r "$dir" "$BUILD_DIR/$PLUGIN_SLUG/$dir"
-        fi
-    done
+        # Sync files
+        for file in "${include_files[@]}"; do
+            if [ -f "$file" ]; then
+                rsync -a "$file" "$BUILD_DIR/$PLUGIN_SLUG/"
+            fi
+        done
+
+        # Sync directories (--delete removes old files)
+        for dir in "${include_dirs[@]}"; do
+            if [ -d "$dir" ]; then
+                mkdir -p "$BUILD_DIR/$PLUGIN_SLUG/$(dirname $dir)"
+                rsync -a --delete "$dir/" "$BUILD_DIR/$PLUGIN_SLUG/$dir/"
+            fi
+        done
+    else
+        # Fallback: Copy files
+        for file in "${include_files[@]}"; do
+            if [ -f "$file" ]; then
+                cp "$file" "$BUILD_DIR/$PLUGIN_SLUG/"
+            fi
+        done
+
+        # Copy directories (remove old first to ensure clean state)
+        for dir in "${include_dirs[@]}"; do
+            if [ -d "$dir" ]; then
+                rm -rf "$BUILD_DIR/$PLUGIN_SLUG/$dir"
+                mkdir -p "$BUILD_DIR/$PLUGIN_SLUG/$(dirname $dir)"
+                cp -r "$dir" "$BUILD_DIR/$PLUGIN_SLUG/$dir"
+            fi
+        done
+    fi
 
     # Re-install dev deps for development
     if [ -f "composer.json" ]; then

@@ -64,8 +64,15 @@ class OffloadService {
 		);
 
 		// Schedule queue processor if not already scheduled.
-		if ( ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-			as_schedule_single_action( time(), 'cfr2_process_queue' );
+		if ( function_exists( 'as_next_scheduled_action' ) ) {
+			if ( ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+				\as_schedule_single_action( time(), 'cfr2_process_queue' );
+			}
+		} else {
+			// Fallback to wp_cron if Action Scheduler not available.
+			if ( ! wp_next_scheduled( 'cfr2_process_queue' ) ) {
+				wp_schedule_single_event( time(), 'cfr2_process_queue' );
+			}
 		}
 
 		return true;
@@ -117,11 +124,23 @@ class OffloadService {
 			$this->update_offload_status( $attachment_id, $r2_key, $result['url'], $file_path );
 
 			// Also offload thumbnail sizes.
-			$this->offload_thumbnails( $attachment_id );
+			$thumb_results = $this->offload_thumbnails( $attachment_id );
+
+			// Build success message with thumbnail info.
+			$thumb_info = '';
+			if ( $thumb_results['total'] > 0 ) {
+				$thumb_info = sprintf(
+					' (+%d/%d thumbnails)',
+					$thumb_results['success'],
+					$thumb_results['total']
+				);
+			}
 
 			$success_result = array(
-				'success' => true,
-				'url'     => $result['url'],
+				'success'    => true,
+				'url'        => $result['url'],
+				'thumbnails' => $thumb_results,
+				'message'    => __( 'Offloaded successfully', 'cloudflare-r2-offload-cdn' ) . $thumb_info,
 			);
 
 			// Fire after offload hook.
@@ -140,24 +159,61 @@ class OffloadService {
 	 * Offload all thumbnail sizes.
 	 *
 	 * @param int $attachment_id Attachment ID.
+	 * @return array Results with success count and failed sizes.
 	 */
-	private function offload_thumbnails( int $attachment_id ): void {
+	private function offload_thumbnails( int $attachment_id ): array {
 		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$results  = array(
+			'total'    => 0,
+			'success'  => 0,
+			'failed'   => array(),
+			'uploaded' => array(),
+		);
+
 		if ( empty( $metadata['sizes'] ) ) {
-			return;
+			return $results;
 		}
 
 		$file_path  = get_attached_file( $attachment_id );
 		$base_dir   = dirname( $file_path );
 		$upload_dir = wp_upload_dir();
 
+		$results['total'] = count( $metadata['sizes'] );
+
 		foreach ( $metadata['sizes'] as $size => $data ) {
 			$thumb_path = $base_dir . '/' . $data['file'];
-			if ( file_exists( $thumb_path ) ) {
-				$r2_key = str_replace( $upload_dir['basedir'] . '/', '', $thumb_path );
-				$this->r2->upload_file( $thumb_path, $r2_key );
+
+			if ( ! file_exists( $thumb_path ) ) {
+				$results['failed'][] = array(
+					'size'    => $size,
+					'message' => 'File not found: ' . $data['file'],
+				);
+				continue;
+			}
+
+			$r2_key = str_replace( $upload_dir['basedir'] . '/', '', $thumb_path );
+			$result = $this->r2->upload_file( $thumb_path, $r2_key );
+
+			if ( $result['success'] ) {
+				++$results['success'];
+				$results['uploaded'][ $size ] = array(
+					'r2_key' => $r2_key,
+					'url'    => $result['url'] ?? '',
+				);
+			} else {
+				$results['failed'][] = array(
+					'size'    => $size,
+					'message' => $result['message'] ?? 'Unknown error',
+				);
 			}
 		}
+
+		// Store thumbnail R2 keys in meta for later reference.
+		if ( ! empty( $results['uploaded'] ) ) {
+			update_post_meta( $attachment_id, '_cfr2_thumbnails', $results['uploaded'] );
+		}
+
+		return $results;
 	}
 
 	/**
@@ -183,8 +239,14 @@ class OffloadService {
 			array( '%d', '%s', '%s', '%s' )
 		);
 
-		if ( ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-			as_schedule_single_action( time(), 'cfr2_process_queue' );
+		if ( function_exists( 'as_next_scheduled_action' ) ) {
+			if ( ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+				\as_schedule_single_action( time(), 'cfr2_process_queue' );
+			}
+		} else {
+			if ( ! wp_next_scheduled( 'cfr2_process_queue' ) ) {
+				wp_schedule_single_event( time(), 'cfr2_process_queue' );
+			}
 		}
 
 		return true;

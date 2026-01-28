@@ -110,8 +110,8 @@ class RestApiOffloadHandler {
 		}
 
 		// Trigger queue processing.
-		if ( $queued > 0 && ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-			as_schedule_single_action( time(), 'cfr2_process_queue' );
+		if ( $queued > 0 && ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+			\as_schedule_single_action( time(), 'cfr2_process_queue' );
 		}
 
 		return new WP_REST_Response(

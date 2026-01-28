@@ -1,5 +1,3 @@
-# Production/Testing: Uses built dist folder
-# For development, use: docker compose -f docker-compose.dev.yml up -d
 services:
   wordpress:
     image: wordpress:latest
@@ -26,7 +24,16 @@ services:
         define('SAVEQUERIES', true);
     volumes:
       - wp_data:/var/www/html
-      - ./dist/cloudflare-r2-offload-cdn:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn
+      # Mount source files directly for instant changes
+      - ./cloudflare-r2-offload-cdn.php:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/cloudflare-r2-offload-cdn.php:ro
+      - ./uninstall.php:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/uninstall.php:ro
+      - ./readme.txt:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/readme.txt:ro
+      - ./src:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/src:ro
+      - ./assets/css:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/assets/css:ro
+      - ./assets/js:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/assets/js:ro
+      - ./assets/images:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/assets/images:ro
+      - ./languages:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/languages:ro
+      - ./vendor:/var/www/html/wp-content/plugins/cloudflare-r2-offload-cdn/vendor:ro
       - ./docker/php.ini:/usr/local/etc/php/conf.d/uploads.ini:ro
     depends_on:
       - mysql

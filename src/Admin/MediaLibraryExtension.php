@@ -42,6 +42,10 @@ class MediaLibraryExtension implements HookableInterface {
 		// AJAX handlers for row actions.
 		add_action( 'wp_ajax_cfr2_offload_single', array( $this, 'ajax_offload_single' ) );
 		add_action( 'wp_ajax_cfr2_restore_single', array( $this, 'ajax_restore_single' ) );
+
+		// Attachment details page.
+		add_filter( 'attachment_fields_to_edit', array( $this, 'add_attachment_fields' ), 10, 2 );
+		add_action( 'wp_ajax_cfr2_offload_attachment', array( $this, 'ajax_offload_attachment' ) );
 	}
 
 	/**
@@ -163,8 +167,8 @@ class MediaLibraryExtension implements HookableInterface {
 		}
 
 		// Schedule queue processing.
-		if ( ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-			as_schedule_single_action( time(), 'cfr2_process_queue' );
+		if ( ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+			\as_schedule_single_action( time(), 'cfr2_process_queue' );
 		}
 
 		return add_query_arg( 'cfr2_queued', $count, $redirect_url );
@@ -252,6 +256,99 @@ class MediaLibraryExtension implements HookableInterface {
 
 		wp_safe_redirect( add_query_arg( 'cfr2_restored', 1, wp_get_referer() ) );
 		exit;
+	}
+
+	/**
+	 * Add R2 status field to attachment details page.
+	 *
+	 * @param array    $form_fields Form fields array.
+	 * @param \WP_Post $post        Attachment post object.
+	 * @return array Modified form fields array.
+	 */
+	public function add_attachment_fields( array $form_fields, \WP_Post $post ): array {
+		$is_offloaded = get_post_meta( $post->ID, '_cfr2_offloaded', true );
+		$r2_url       = get_post_meta( $post->ID, '_cfr2_r2_url', true );
+		$thumbnails   = get_post_meta( $post->ID, '_cfr2_thumbnails', true );
+		$is_pending   = $this->is_pending( $post->ID );
+
+		// Build status HTML.
+		if ( $is_offloaded ) {
+			$thumb_count = is_array( $thumbnails ) ? count( $thumbnails ) : 0;
+
+			$status_html = '<span style="color: #46b450; font-weight: bold;">';
+			$status_html .= '<span class="dashicons dashicons-cloud" style="vertical-align: middle;"></span> ';
+			$status_html .= esc_html__( 'Offloaded to R2', 'cloudflare-r2-offload-cdn' );
+			if ( $thumb_count > 0 ) {
+				$status_html .= sprintf( ' (+%d %s)', $thumb_count, _n( 'thumbnail', 'thumbnails', $thumb_count, 'cloudflare-r2-offload-cdn' ) );
+			}
+			$status_html .= '</span>';
+			if ( $r2_url ) {
+				$status_html .= '<br><small style="color: #666;">' . esc_html( $r2_url ) . '</small>';
+			}
+		} elseif ( $is_pending ) {
+			$status_html = '<span style="color: #f0ad4e; font-weight: bold;">';
+			$status_html .= '<span class="dashicons dashicons-clock" style="vertical-align: middle;"></span> ';
+			$status_html .= esc_html__( 'Queued for offload', 'cloudflare-r2-offload-cdn' );
+			$status_html .= '</span>';
+		} else {
+			$status_html = '<span style="color: #999;">';
+			$status_html .= '<span class="dashicons dashicons-admin-site" style="vertical-align: middle;"></span> ';
+			$status_html .= esc_html__( 'Stored locally', 'cloudflare-r2-offload-cdn' );
+			$status_html .= '</span>';
+
+			// Add offload button.
+			$nonce        = wp_create_nonce( 'cfr2_offload_attachment_' . $post->ID );
+			$status_html .= '<br><br>';
+			$status_html .= sprintf(
+				'<button type="button" class="button cfr2-offload-btn" data-id="%d" data-nonce="%s">%s</button>',
+				$post->ID,
+				$nonce,
+				esc_html__( 'Offload to R2', 'cloudflare-r2-offload-cdn' )
+			);
+			$status_html .= '<span class="cfr2-offload-status" style="margin-left: 10px;"></span>';
+		}
+
+		$form_fields['cfr2_status'] = array(
+			'label' => __( 'R2 Status', 'cloudflare-r2-offload-cdn' ),
+			'input' => 'html',
+			'html'  => $status_html,
+		);
+
+		return $form_fields;
+	}
+
+	/**
+	 * AJAX handler for offloading from attachment details.
+	 */
+	public function ajax_offload_attachment(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$id    = absint( $_POST['attachment_id'] ?? 0 );
+		$nonce = sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! wp_verify_nonce( $nonce, 'cfr2_offload_attachment_' . $id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+
+		$credentials = self::get_r2_credentials();
+		$r2          = new R2Client( $credentials );
+		$offload     = new OffloadService( $r2 );
+		$result      = $offload->offload( $id );
+
+		if ( $result['success'] ) {
+			wp_send_json_success(
+				array(
+					'message' => __( 'Offloaded successfully!', 'cloudflare-r2-offload-cdn' ),
+					'url'     => $result['url'] ?? '',
+				)
+			);
+		} else {
+			wp_send_json_error( array( 'message' => $result['message'] ?? __( 'Offload failed.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
 	}
 
 	/**

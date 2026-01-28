@@ -91,13 +91,18 @@ class R2Client {
 	}
 
 	/**
-	 * Test R2 connection by listing buckets.
+	 * Test R2 connection by checking bucket access.
 	 *
 	 * @return array Result array with success/message.
 	 */
 	public function test_connection(): array {
 		try {
-			$this->get_client()->listBuckets();
+			// Use headBucket instead of listBuckets - works with bucket-scoped tokens.
+			$this->get_client()->headBucket(
+				array(
+					'Bucket' => $this->bucket,
+				)
+			);
 			return array(
 				'success' => true,
 				'message' => __( 'Connection successful', 'cloudflare-r2-offload-cdn' ),

@@ -5,7 +5,14 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "preview": "vite preview"
+    "build:plugin": "./scripts/build.sh build",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:dev:logs": "docker compose -f docker-compose.dev.yml logs -f wordpress",
+    "docker:prod": "./scripts/build.sh build && docker compose up -d",
+    "docker:prod:down": "docker compose down",
+    "release": "./scripts/build.sh zip",
+    "release:svn": "./scripts/build.sh deploy-svn"
   },
   "devDependencies": {
     "sass": "^1.69.0",

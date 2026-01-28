@@ -120,7 +120,7 @@ class QueueProcessor {
 		);
 
 		if ( $remaining > 0 && ! get_transient( 'cfr2_bulk_cancelled' ) ) {
-			as_schedule_single_action( time() + 5, 'cfr2_process_queue' );
+			\as_schedule_single_action( time() + 5, 'cfr2_process_queue' );
 		}
 	}
 

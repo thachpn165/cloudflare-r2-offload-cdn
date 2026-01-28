@@ -68,15 +68,18 @@ class AdminMenu implements HookableInterface {
 
 	/**
 	 * Register settings.
+	 *
+	 * Note: sanitize_callback is NOT used here because we handle sanitization
+	 * manually in ajax_save_settings(). Using both would cause double encryption
+	 * of sensitive fields like r2_secret_access_key.
 	 */
 	public function register_settings(): void {
 		register_setting(
 			'cloudflare_r2_offload_cdn_settings_group',
 			'cloudflare_r2_offload_cdn_settings',
 			array(
-				'type'              => 'array',
-				'sanitize_callback' => array( $this, 'sanitize_settings' ),
-				'default'           => $this->get_default_settings(),
+				'type'    => 'array',
+				'default' => $this->get_default_settings(),
 			)
 		);
 	}
@@ -233,6 +236,17 @@ class AdminMenu implements HookableInterface {
 	}
 
 	/**
+	 * Sanitize URL field - removes trailing slash and validates.
+	 *
+	 * @param string $url URL to sanitize.
+	 * @return string Sanitized URL.
+	 */
+	private function sanitize_url_field( string $url ): string {
+		$url = esc_url_raw( $url );
+		return rtrim( $url, '/' );
+	}
+
+	/**
 	 * Test R2 connection via AJAX.
 	 */
 	public function ajax_test_r2_connection(): void {
@@ -265,15 +279,26 @@ class AdminMenu implements HookableInterface {
 		}
 		set_transient( $rate_key, ( $count ? (int) $count + 1 : 1 ), 60 );
 
-		// Get credentials from settings.
-		$settings   = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
-		$encryption = new EncryptionService();
+		// Get credentials from form values (for testing before save).
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$account_id    = sanitize_text_field( wp_unslash( $_POST['r2_account_id'] ?? '' ) );
+		$access_key_id = sanitize_text_field( wp_unslash( $_POST['r2_access_key_id'] ?? '' ) );
+		$secret_key    = sanitize_text_field( wp_unslash( $_POST['r2_secret_access_key'] ?? '' ) );
+		$bucket        = sanitize_text_field( wp_unslash( $_POST['r2_bucket'] ?? '' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		// If secret is placeholder, get from saved settings.
+		if ( '********' === $secret_key || empty( $secret_key ) ) {
+			$settings   = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+			$encryption = new EncryptionService();
+			$secret_key = $encryption->decrypt( $settings['r2_secret_access_key'] ?? '' );
+		}
 
 		$credentials = array(
-			'account_id'        => $settings['r2_account_id'] ?? '',
-			'access_key_id'     => $settings['r2_access_key_id'] ?? '',
-			'secret_access_key' => $encryption->decrypt( $settings['r2_secret_access_key'] ?? '' ),
-			'bucket'            => $settings['r2_bucket'] ?? '',
+			'account_id'        => $account_id,
+			'access_key_id'     => $access_key_id,
+			'secret_access_key' => $secret_key,
+			'bucket'            => $bucket,
 		);
 
 		// Validate all fields present.
@@ -378,8 +403,8 @@ class AdminMenu implements HookableInterface {
 		delete_transient( 'cfr2_bulk_cancelled' );
 
 		// Schedule processing.
-		if ( ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-			as_schedule_single_action( time(), 'cfr2_process_queue' );
+		if ( ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+			\as_schedule_single_action( time(), 'cfr2_process_queue' );
 		}
 
 		wp_send_json_success(
@@ -684,8 +709,8 @@ class AdminMenu implements HookableInterface {
 		}
 
 		// Schedule processing.
-		if ( $queued > 0 && ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-			as_schedule_single_action( time(), 'cfr2_process_queue' );
+		if ( $queued > 0 && ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+			\as_schedule_single_action( time(), 'cfr2_process_queue' );
 		}
 
 		wp_send_json_success(
@@ -735,8 +760,8 @@ class AdminMenu implements HookableInterface {
 
 		if ( $updated ) {
 			// Schedule processing.
-			if ( ! as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-				as_schedule_single_action( time(), 'cfr2_process_queue' );
+			if ( ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
+				\as_schedule_single_action( time(), 'cfr2_process_queue' );
 			}
 
 			wp_send_json_success( array( 'message' => __( 'Item queued for retry.', 'cloudflare-r2-offload-cdn' ) ) );
