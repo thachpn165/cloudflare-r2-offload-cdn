@@ -30,8 +30,20 @@ class Assets implements HookableInterface {
 	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_admin_assets( string $hook ): void {
-		// Only load on plugin pages.
-		if ( strpos( $hook, 'cloudflare-r2-offload-cdn' ) === false ) {
+		$is_plugin_page = strpos( $hook, 'cloudflare-r2-offload-cdn' ) !== false;
+		$is_media_page  = in_array( $hook, array( 'upload.php', 'post.php' ), true );
+
+		// Check if editing an attachment.
+		if ( 'post.php' === $hook ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+			if ( $post_id && 'attachment' !== get_post_type( $post_id ) ) {
+				$is_media_page = false;
+			}
+		}
+
+		// Only load on plugin pages or media pages.
+		if ( ! $is_plugin_page && ! $is_media_page ) {
 			return;
 		}
 
