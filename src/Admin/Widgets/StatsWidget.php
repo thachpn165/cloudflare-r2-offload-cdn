@@ -48,11 +48,11 @@ class StatsWidget {
 					<span class="cfr2-stat-label"><?php esc_html_e( 'Requests This Month', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
 				<div class="cfr2-stat-item">
-					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $analytics['cpu_time_p50_avg'] ?? 0, 2 ) ); ?> ms</span>
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $analytics['cpu_time_p50_avg'] ?? 0, 1 ) ); ?>ms</span>
 					<span class="cfr2-stat-label"><?php esc_html_e( 'Avg CPU Time (P50)', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
 				<div class="cfr2-stat-item">
-					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $analytics['cpu_time_p99_avg'] ?? 0, 2 ) ); ?> ms</span>
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $analytics['cpu_time_p99_avg'] ?? 0, 1 ) ); ?>ms</span>
 					<span class="cfr2-stat-label"><?php esc_html_e( 'Avg CPU Time (P99)', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
 			</div>
