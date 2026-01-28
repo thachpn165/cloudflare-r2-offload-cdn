@@ -3,7 +3,7 @@
  * Plugin Name: CloudFlare R2 Offload My Plugin CDN
  * Plugin URI:  https://example.com/cloudflare-r2-offload-cdn
  * Description: A WordPress plugin boilerplate.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:      ThachPN165
  * Author URI:  https://example.com
  * License:     GPL-2.0+
@@ -19,7 +19,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Plugin constants.
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_VERSION', '1.0.0' );
+define( 'CLOUDFLARE_R2_OFFLOAD_CDN_VERSION', '1.0.1' );
 define( 'CLOUDFLARE_R2_OFFLOAD_CDN_FILE', __FILE__ );
 define( 'CLOUDFLARE_R2_OFFLOAD_CDN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CLOUDFLARE_R2_OFFLOAD_CDN_URL', plugin_dir_url( __FILE__ ) );

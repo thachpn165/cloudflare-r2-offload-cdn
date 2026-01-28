@@ -80,12 +80,14 @@ class StorageTab {
 					<td>
 						<input type="url" id="r2_public_domain" name="r2_public_domain"
 							value="<?php echo esc_url( $settings['r2_public_domain'] ?? '' ); ?>"
-							class="regular-text" placeholder="https://media.example.com" />
+							class="regular-text" placeholder="https://pub-xxx.r2.dev" />
 						<p class="description">
-							<?php esc_html_e( 'Custom domain for R2 public access. Used when CDN is disabled.', 'cloudflare-r2-offload-cdn' ); ?>
+							<?php esc_html_e( 'Public URL for R2 bucket. Required for CDN Worker deployment.', 'cloudflare-r2-offload-cdn' ); ?>
 							<br>
-							<a href="https://developers.cloudflare.com/r2/buckets/public-buckets/#custom-domains" target="_blank" rel="noopener">
-								<?php esc_html_e( 'Learn how to set up R2 custom domain →', 'cloudflare-r2-offload-cdn' ); ?>
+							<?php esc_html_e( 'Use R2.dev subdomain (e.g., https://pub-xxx.r2.dev) or custom domain.', 'cloudflare-r2-offload-cdn' ); ?>
+							<br>
+							<a href="https://developers.cloudflare.com/r2/buckets/public-buckets/" target="_blank" rel="noopener">
+								<?php esc_html_e( 'How to enable public access →', 'cloudflare-r2-offload-cdn' ); ?>
 							</a>
 						</p>
 					</td>

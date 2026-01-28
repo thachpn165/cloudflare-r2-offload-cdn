@@ -54,8 +54,9 @@ class CloudflareAPI {
 	 */
 	public function upload_version( string $worker_name, string $script, array $bindings = array() ): array {
 		$metadata = array(
-			'main_module' => 'worker.js',
-			'bindings'    => $bindings,
+			'main_module'        => 'worker.js',
+			'compatibility_date' => '2024-01-01',
+			'bindings'           => $bindings,
 		);
 
 		// Multipart form data.
@@ -69,9 +70,10 @@ class CloudflareAPI {
 					'type'    => 'application/json',
 				),
 				array(
-					'name'    => 'worker.js',
-					'content' => $script,
-					'type'    => 'application/javascript+module',
+					'name'     => 'worker.js',
+					'filename' => 'worker.js', // Required for ES modules.
+					'content'  => $script,
+					'type'     => 'application/javascript+module',
 				),
 			)
 		);
@@ -167,6 +169,168 @@ class CloudflareAPI {
 	 */
 	public function verify_token(): array {
 		return $this->request( 'GET', '/user/tokens/verify' );
+	}
+
+	/**
+	 * Get DNS record by name.
+	 *
+	 * @param string $zone_id Zone ID.
+	 * @param string $name    Record name (e.g., cdn.example.com).
+	 * @param string $type    Record type (default: CNAME).
+	 * @return array|null DNS record or null if not found.
+	 */
+	public function get_dns_record( string $zone_id, string $name, string $type = 'CNAME' ): ?array {
+		$response = $this->request(
+			'GET',
+			"/zones/{$zone_id}/dns_records",
+			array(
+				'name' => $name,
+				'type' => $type,
+			)
+		);
+
+		if ( $response['success'] && ! empty( $response['result'] ) ) {
+			return $response['result'][0];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Create DNS record.
+	 *
+	 * @param string $zone_id Zone ID.
+	 * @param array  $data    Record data (name, type, content, proxied).
+	 * @return array Response array.
+	 */
+	public function create_dns_record( string $zone_id, array $data ): array {
+		return $this->request(
+			'POST',
+			"/zones/{$zone_id}/dns_records",
+			$data
+		);
+	}
+
+	/**
+	 * Update DNS record.
+	 *
+	 * @param string $zone_id   Zone ID.
+	 * @param string $record_id Record ID.
+	 * @param array  $data      Record data.
+	 * @return array Response array.
+	 */
+	public function update_dns_record( string $zone_id, string $record_id, array $data ): array {
+		return $this->request(
+			'PATCH',
+			"/zones/{$zone_id}/dns_records/{$record_id}",
+			$data
+		);
+	}
+
+	/**
+	 * Validate and setup DNS record for CDN domain.
+	 *
+	 * @param string $cdn_url Full CDN URL (e.g., https://cdn.example.com).
+	 * @return array Result with status and warnings.
+	 */
+	public function validate_cdn_dns( string $cdn_url ): array {
+		$parsed = wp_parse_url( $cdn_url );
+		if ( empty( $parsed['host'] ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'Invalid CDN URL', 'cloudflare-r2-offload-cdn' ),
+			);
+		}
+
+		$cdn_host = $parsed['host'];
+
+		// Extract base domain for zone lookup.
+		$parts       = explode( '.', $cdn_host );
+		$base_domain = implode( '.', array_slice( $parts, -2 ) );
+
+		// Get zone ID.
+		$zone_id = $this->get_zone_id( $base_domain );
+		if ( ! $zone_id ) {
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: %s: domain name */
+					__( 'Domain "%s" not found in your Cloudflare account', 'cloudflare-r2-offload-cdn' ),
+					$base_domain
+				),
+			);
+		}
+
+		// Check for existing DNS record.
+		$record = $this->get_dns_record( $zone_id, $cdn_host, 'CNAME' );
+		if ( ! $record ) {
+			// Try A record.
+			$record = $this->get_dns_record( $zone_id, $cdn_host, 'A' );
+		}
+
+		$warnings = array();
+
+		if ( $record ) {
+			// Record exists - check configuration.
+			if ( empty( $record['proxied'] ) ) {
+				$warnings[] = __( 'DNS record exists but Cloudflare proxy is DISABLED. Worker will NOT work without proxy.', 'cloudflare-r2-offload-cdn' );
+			}
+
+			return array(
+				'success'   => true,
+				'action'    => 'exists',
+				'record'    => $record,
+				'warnings'  => $warnings,
+				'zone_id'   => $zone_id,
+				'record_id' => $record['id'],
+			);
+		}
+
+		// Record doesn't exist - create it.
+		$create_result = $this->create_dns_record(
+			$zone_id,
+			array(
+				'type'    => 'A',
+				'name'    => $cdn_host,
+				'content' => '192.0.2.1', // Dummy IP (TEST-NET-1, safe placeholder).
+				'proxied' => true,
+				'ttl'     => 1, // Auto TTL.
+			)
+		);
+
+		if ( $create_result['success'] ) {
+			return array(
+				'success' => true,
+				'action'  => 'created',
+				'record'  => $create_result['result'],
+				'message' => sprintf(
+					/* translators: %s: CDN hostname */
+					__( 'DNS record created for %s with Cloudflare proxy enabled.', 'cloudflare-r2-offload-cdn' ),
+					$cdn_host
+				),
+				'zone_id' => $zone_id,
+			);
+		}
+
+		return array(
+			'success' => false,
+			'message' => $create_result['errors'][0]['message'] ?? __( 'Failed to create DNS record', 'cloudflare-r2-offload-cdn' ),
+		);
+	}
+
+	/**
+	 * Enable proxy on existing DNS record.
+	 *
+	 * @param string $zone_id   Zone ID.
+	 * @param string $record_id Record ID.
+	 * @return array Response array.
+	 */
+	public function enable_dns_proxy( string $zone_id, string $record_id ): array {
+		return $this->update_dns_record(
+			$zone_id,
+			$record_id,
+			array( 'proxied' => true )
+		);
 	}
 
 	/**

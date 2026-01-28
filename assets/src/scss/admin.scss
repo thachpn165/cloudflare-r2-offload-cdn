@@ -950,3 +950,164 @@ $text-muted: #646970;
     gap: 12px;
   }
 }
+
+// Setup Guide (collapsible)
+.cfr2-setup-guide {
+  margin-top: 16px;
+  border: 1px solid $border-light;
+  border-radius: 4px;
+  background: $bg-color;
+
+  summary {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    color: $primary-color;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: "▶";
+      font-size: 10px;
+      @include transition(transform);
+    }
+
+    &:hover {
+      background: rgba($primary-color, 0.05);
+    }
+  }
+
+  &[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .cfr2-setup-guide-content {
+    padding: 16px 20px;
+    border-top: 1px solid $border-light;
+    background: $bg-white;
+
+    p {
+      margin: 0 0 12px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul {
+      margin: 8px 0 16px 20px;
+      padding: 0;
+
+      li {
+        margin-bottom: 6px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        strong {
+          display: inline-block;
+          min-width: 100px;
+        }
+
+        em {
+          color: $text-muted;
+          font-size: 13px;
+        }
+      }
+    }
+  }
+}
+
+// Notice styles for guide
+.cfr2-notice {
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-top: 16px;
+
+  &.cfr2-notice-info {
+    background: #f0f6fc;
+    border: 1px solid #0073aa;
+    color: #1d2327;
+  }
+
+  &.cfr2-notice-warning {
+    background: #fcf9e8;
+    border: 1px solid #dba617;
+    color: #1d2327;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+}
+
+// CDN URL row with validate button
+.cfr2-cdn-url-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  input {
+    flex: 1;
+    max-width: 400px;
+  }
+}
+
+// DNS status display
+.cfr2-dns-status {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  background: $bg-color;
+  border: 1px solid $border-light;
+
+  .dashicons {
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
+  .spinner {
+    margin: 0 8px 0 0;
+  }
+}
+
+.cfr2-dns-success {
+  color: $success-color;
+
+  .dashicons {
+    color: $success-color;
+  }
+}
+
+.cfr2-dns-warning {
+  color: #856404;
+  background: #fff3cd;
+  border-color: #ffeeba;
+  padding: 12px;
+  border-radius: 4px;
+
+  .dashicons {
+    color: #dba617;
+  }
+
+  .cfr2-enable-proxy-btn {
+    margin-top: 12px;
+  }
+}
+
+.cfr2-dns-error {
+  color: $error-color;
+
+  .dashicons {
+    color: $error-color;
+  }
+}

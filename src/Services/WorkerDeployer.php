@@ -69,14 +69,19 @@ class WorkerDeployer {
 		$upload   = $this->api->upload_version( $this->worker_name, $script, $bindings );
 
 		if ( ! $upload['success'] ) {
-			$steps[] = array(
+			$error_msg = $upload['errors'][0]['message'] ?? 'Unknown error';
+			$steps[]   = array(
 				'step'   => 'upload_script',
 				'status' => 'failed',
-				'error'  => $upload['errors'][0]['message'] ?? 'Unknown',
+				'error'  => $error_msg,
 			);
 			return array(
 				'success' => false,
-				'message' => __( 'Failed to upload Worker script', 'cloudflare-r2-offload-cdn' ),
+				'message' => sprintf(
+					/* translators: %s: error message */
+					__( 'Failed to upload Worker script: %s', 'cloudflare-r2-offload-cdn' ),
+					$error_msg
+				),
 				'steps'   => $steps,
 			);
 		}
@@ -92,14 +97,29 @@ class WorkerDeployer {
 			'status' => $deploy['success'] ? 'success' : 'warning',
 		);
 
-		// Step 5: Configure route if custom domain provided.
+		// Step 5: Validate/Create DNS record if custom domain provided.
+		$warnings = array();
 		if ( ! empty( $config['custom_domain'] ) ) {
-			$route_result = $this->configure_route( $config['custom_domain'] );
-			$steps[]      = array(
-				'step'   => 'configure_route',
-				'status' => $route_result['success'] ? 'success' : 'failed',
-				'route'  => $route_result['pattern'] ?? null,
+			$dns_result = $this->api->validate_cdn_dns( $config['custom_domain'] );
+			$steps[]    = array(
+				'step'   => 'dns_validation',
+				'status' => $dns_result['success'] ? 'success' : 'warning',
+				'action' => $dns_result['action'] ?? null,
 			);
+
+			if ( ! empty( $dns_result['warnings'] ) ) {
+				$warnings = array_merge( $warnings, $dns_result['warnings'] );
+			}
+
+			// Step 6: Configure route.
+			if ( $dns_result['success'] ) {
+				$route_result = $this->configure_route( $config['custom_domain'] );
+				$steps[]      = array(
+					'step'   => 'configure_route',
+					'status' => $route_result['success'] ? 'success' : 'failed',
+					'route'  => $route_result['pattern'] ?? null,
+				);
+			}
 		}
 
 		return array(
@@ -107,6 +127,7 @@ class WorkerDeployer {
 			'message'     => __( 'Worker deployed successfully', 'cloudflare-r2-offload-cdn' ),
 			'worker_name' => $this->worker_name,
 			'steps'       => $steps,
+			'warnings'    => $warnings,
 		);
 	}
 
@@ -153,12 +174,12 @@ class WorkerDeployer {
 	private function get_bindings( array $config ): array {
 		$bindings = array();
 
-		// R2 bucket public URL.
-		if ( ! empty( $config['r2_public_url'] ) ) {
+		// R2 bucket binding (direct access - faster, no public access needed).
+		if ( ! empty( $config['r2_bucket'] ) ) {
 			$bindings[] = array(
-				'type' => 'plain_text',
-				'name' => 'R2_PUBLIC_URL',
-				'text' => rtrim( $config['r2_public_url'], '/' ),
+				'type'        => 'r2_bucket',
+				'name'        => 'BUCKET',
+				'bucket_name' => $config['r2_bucket'],
 			);
 		}
 

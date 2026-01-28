@@ -54,6 +54,10 @@ import '../scss/admin.scss';
 
       // Media attachment detail page offload button.
       $(document).on('click', '.cfr2-offload-btn', this.handleAttachmentOffload.bind(this));
+
+      // CDN DNS validation.
+      $('#validate-cdn-dns').on('click', this.handleValidateCdnDns.bind(this));
+      $(document).on('click', '.cfr2-enable-proxy-btn', this.handleEnableDnsProxy.bind(this));
     },
 
     /**
@@ -727,6 +731,150 @@ import '../scss/admin.scss';
 
       // Trigger tab click.
       $('.cloudflare-r2-offload-cdn-tabs li[data-tab="bulk-actions"]').trigger('click');
+    },
+
+    /**
+     * Handle CDN DNS validation.
+     *
+     * @param {Event} e Click event.
+     */
+    handleValidateCdnDns(e) {
+      e.preventDefault();
+
+      const $btn = $(e.currentTarget);
+      const $status = $('#cdn-dns-status');
+      const cdnUrl = $('#cdn_url').val();
+
+      if (!cdnUrl) {
+        this.showToast('Please enter a CDN URL first', 'error');
+        return;
+      }
+
+      if ($btn.hasClass('is-loading')) {
+        return;
+      }
+
+      $btn.addClass('is-loading').prop('disabled', true).text('Validating...');
+      $status.show().html('<span class="spinner is-active" style="float:none;margin:0 5px;"></span> Checking DNS...');
+
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_validate_cdn_dns',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+          cdn_url: cdnUrl,
+        },
+        success: (response) => {
+          if (response.success) {
+            const data = response.data;
+
+            if (data.action === 'created') {
+              // DNS record was created.
+              $status.html(
+                '<div class="cfr2-dns-success">' +
+                '<span class="dashicons dashicons-yes-alt" style="color: #46b450;"></span> ' +
+                data.message +
+                '</div>'
+              );
+              this.showToast(data.message, 'success');
+            } else if (data.action === 'exists') {
+              // DNS record exists.
+              if (data.warnings && data.warnings.length > 0) {
+                // Has warnings - proxy disabled.
+                $status.html(
+                  '<div class="cfr2-dns-warning">' +
+                  '<span class="dashicons dashicons-warning" style="color: #dba617;"></span> ' +
+                  data.warnings.join('<br>') +
+                  '<br><button type="button" class="button cfr2-enable-proxy-btn" ' +
+                  'data-zone-id="' + data.zone_id + '" data-record-id="' + data.record_id + '">' +
+                  'Enable Proxy Now</button>' +
+                  '</div>'
+                );
+                this.showToast('DNS record found but needs configuration', 'error');
+              } else {
+                // All good.
+                $status.html(
+                  '<div class="cfr2-dns-success">' +
+                  '<span class="dashicons dashicons-yes-alt" style="color: #46b450;"></span> ' +
+                  'DNS record found with proxy enabled. Ready to deploy!' +
+                  '</div>'
+                );
+                this.showToast('DNS validation passed!', 'success');
+              }
+            }
+          } else {
+            $status.html(
+              '<div class="cfr2-dns-error">' +
+              '<span class="dashicons dashicons-dismiss" style="color: #dc3232;"></span> ' +
+              response.data.message +
+              '</div>'
+            );
+            this.showToast(response.data.message, 'error');
+          }
+        },
+        error: () => {
+          $status.html(
+            '<div class="cfr2-dns-error">' +
+            '<span class="dashicons dashicons-dismiss" style="color: #dc3232;"></span> ' +
+            'Validation request failed' +
+            '</div>'
+          );
+          this.showToast('DNS validation failed', 'error');
+        },
+        complete: () => {
+          $btn.removeClass('is-loading').prop('disabled', false).text('Validate DNS');
+        },
+      });
+    },
+
+    /**
+     * Handle enable DNS proxy.
+     *
+     * @param {Event} e Click event.
+     */
+    handleEnableDnsProxy(e) {
+      e.preventDefault();
+
+      const $btn = $(e.currentTarget);
+      const zoneId = $btn.data('zone-id');
+      const recordId = $btn.data('record-id');
+      const $status = $('#cdn-dns-status');
+
+      if ($btn.hasClass('is-loading')) {
+        return;
+      }
+
+      $btn.addClass('is-loading').prop('disabled', true).text('Enabling...');
+
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_enable_dns_proxy',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+          zone_id: zoneId,
+          record_id: recordId,
+        },
+        success: (response) => {
+          if (response.success) {
+            $status.html(
+              '<div class="cfr2-dns-success">' +
+              '<span class="dashicons dashicons-yes-alt" style="color: #46b450;"></span> ' +
+              response.data.message + ' Ready to deploy!' +
+              '</div>'
+            );
+            this.showToast(response.data.message, 'success');
+          } else {
+            this.showToast(response.data.message, 'error');
+            $btn.removeClass('is-loading').prop('disabled', false).text('Enable Proxy Now');
+          }
+        },
+        error: () => {
+          this.showToast('Failed to enable proxy', 'error');
+          $btn.removeClass('is-loading').prop('disabled', false).text('Enable Proxy Now');
+        },
+      });
     },
   };
 

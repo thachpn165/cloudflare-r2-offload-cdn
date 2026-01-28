@@ -44,6 +44,8 @@ class AdminMenu implements HookableInterface {
 		add_action( 'wp_ajax_cfr2_deploy_worker', array( $this, 'ajax_deploy_worker' ) );
 		add_action( 'wp_ajax_cfr2_remove_worker', array( $this, 'ajax_remove_worker' ) );
 		add_action( 'wp_ajax_cfr2_worker_status', array( $this, 'ajax_worker_status' ) );
+		add_action( 'wp_ajax_cfr2_validate_cdn_dns', array( $this, 'ajax_validate_cdn_dns' ) );
+		add_action( 'wp_ajax_cfr2_enable_dns_proxy', array( $this, 'ajax_enable_dns_proxy' ) );
 		add_action( 'wp_ajax_cfr2_get_stats', array( $this, 'ajax_get_stats' ) );
 		add_action( 'wp_ajax_cfr2_get_activity_log', array( $this, 'ajax_get_activity_log' ) );
 		add_action( 'wp_ajax_cfr2_retry_failed', array( $this, 'ajax_retry_failed' ) );
@@ -507,6 +509,15 @@ class AdminMenu implements HookableInterface {
 			wp_send_json_error( array( 'message' => __( 'Missing Cloudflare API Token or Account ID.', 'cloudflare-r2-offload-cdn' ) ) );
 		}
 
+		// Validate R2 bucket is configured.
+		if ( empty( $settings['r2_bucket'] ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'R2 Bucket name is required. Please configure it in the Storage tab first.', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		}
+
 		// Decrypt API token.
 		$encryption = new EncryptionService();
 		$api_token  = $encryption->decrypt( $settings['cf_api_token'] );
@@ -515,13 +526,10 @@ class AdminMenu implements HookableInterface {
 		$api      = new CloudflareAPI( $api_token, $settings['r2_account_id'] );
 		$deployer = new WorkerDeployer( $api );
 
-		// Build R2 public URL.
-		$r2_public_url = "https://{$settings['r2_bucket']}.{$settings['r2_account_id']}.r2.cloudflarestorage.com";
-
-		// Deploy.
+		// Deploy with R2 bucket binding (direct access).
 		$result = $deployer->deploy(
 			array(
-				'r2_public_url'  => $r2_public_url,
+				'r2_bucket'      => $settings['r2_bucket'],
 				'custom_domain'  => $settings['cdn_url'] ?? '',
 				'enable_avif'    => ! empty( $settings['enable_avif'] ),
 			)
@@ -536,17 +544,87 @@ class AdminMenu implements HookableInterface {
 
 			wp_send_json_success(
 				array(
-					'message' => __( 'Worker deployed successfully!', 'cloudflare-r2-offload-cdn' ),
-					'steps'   => $result['steps'],
+					'message'  => __( 'Worker deployed successfully!', 'cloudflare-r2-offload-cdn' ),
+					'steps'    => $result['steps'],
+					'warnings' => $result['warnings'] ?? array(),
 				)
 			);
 		} else {
 			wp_send_json_error(
 				array(
-					'message' => $result['message'],
-					'steps'   => $result['steps'],
+					'message'  => $result['message'],
+					'steps'    => $result['steps'],
+					'warnings' => $result['warnings'] ?? array(),
 				)
 			);
+		}
+	}
+
+	/**
+	 * AJAX handler for validate CDN DNS.
+	 */
+	public function ajax_validate_cdn_dns(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$cdn_url = isset( $_POST['cdn_url'] ) ? esc_url_raw( wp_unslash( $_POST['cdn_url'] ) ) : '';
+
+		if ( empty( $cdn_url ) ) {
+			wp_send_json_error( array( 'message' => __( 'CDN URL is required.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+
+		$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+
+		if ( empty( $settings['cf_api_token'] ) || empty( $settings['r2_account_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please configure Cloudflare API Token first.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+
+		$encryption = new EncryptionService();
+		$api_token  = $encryption->decrypt( $settings['cf_api_token'] );
+
+		$api    = new CloudflareAPI( $api_token, $settings['r2_account_id'] );
+		$result = $api->validate_cdn_dns( $cdn_url );
+
+		if ( $result['success'] ) {
+			wp_send_json_success( $result );
+		} else {
+			wp_send_json_error( $result );
+		}
+	}
+
+	/**
+	 * AJAX handler for enable DNS proxy.
+	 */
+	public function ajax_enable_dns_proxy(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$zone_id   = isset( $_POST['zone_id'] ) ? sanitize_text_field( wp_unslash( $_POST['zone_id'] ) ) : '';
+		$record_id = isset( $_POST['record_id'] ) ? sanitize_text_field( wp_unslash( $_POST['record_id'] ) ) : '';
+
+		if ( empty( $zone_id ) || empty( $record_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Missing zone or record ID.', 'cloudflare-r2-offload-cdn' ) ) );
+		}
+
+		$settings   = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+		$encryption = new EncryptionService();
+		$api_token  = $encryption->decrypt( $settings['cf_api_token'] ?? '' );
+
+		$api    = new CloudflareAPI( $api_token, $settings['r2_account_id'] ?? '' );
+		$result = $api->enable_dns_proxy( $zone_id, $record_id );
+
+		if ( $result['success'] ) {
+			wp_send_json_success( array( 'message' => __( 'Proxy enabled successfully!', 'cloudflare-r2-offload-cdn' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => $result['errors'][0]['message'] ?? __( 'Failed to enable proxy.', 'cloudflare-r2-offload-cdn' ) ) );
 		}
 	}
 

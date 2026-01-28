@@ -49,10 +49,43 @@ class CdnTab {
 							<label for="cdn_url"><?php esc_html_e( 'CDN URL', 'cloudflare-r2-offload-cdn' ); ?></label>
 						</th>
 						<td>
-							<input type="url" id="cdn_url" name="cdn_url"
-								value="<?php echo esc_url( $settings['cdn_url'] ?? '' ); ?>"
-								class="regular-text" placeholder="https://cdn.example.com" />
-							<p class="description"><?php esc_html_e( 'Your custom domain pointing to the Worker.', 'cloudflare-r2-offload-cdn' ); ?></p>
+							<div class="cfr2-cdn-url-row">
+								<input type="url" id="cdn_url" name="cdn_url"
+									value="<?php echo esc_url( $settings['cdn_url'] ?? '' ); ?>"
+									class="regular-text" placeholder="https://cdn.example.com" />
+								<button type="button" id="validate-cdn-dns" class="button">
+									<?php esc_html_e( 'Validate DNS', 'cloudflare-r2-offload-cdn' ); ?>
+								</button>
+							</div>
+							<div id="cdn-dns-status" class="cfr2-dns-status" style="display:none;"></div>
+							<p class="description"><?php esc_html_e( 'Your custom domain pointing to the Worker. DNS record will be created automatically if not exists.', 'cloudflare-r2-offload-cdn' ); ?></p>
+
+							<details class="cfr2-setup-guide">
+								<summary><?php esc_html_e( 'How does automatic DNS setup work?', 'cloudflare-r2-offload-cdn' ); ?></summary>
+								<div class="cfr2-setup-guide-content">
+									<p><strong><?php esc_html_e( 'Automatic Setup (Recommended)', 'cloudflare-r2-offload-cdn' ); ?></strong></p>
+									<ol>
+										<li><?php esc_html_e( 'Enter your desired CDN URL (e.g., https://cdn.yourdomain.com)', 'cloudflare-r2-offload-cdn' ); ?></li>
+										<li><?php esc_html_e( 'Click "Validate DNS" to check/create the DNS record automatically', 'cloudflare-r2-offload-cdn' ); ?></li>
+										<li><?php esc_html_e( 'Click "Deploy Worker" to deploy and configure routes', 'cloudflare-r2-offload-cdn' ); ?></li>
+									</ol>
+
+									<div class="cfr2-notice cfr2-notice-info">
+										<strong><?php esc_html_e( 'What happens when you validate:', 'cloudflare-r2-offload-cdn' ); ?></strong>
+										<ul style="margin: 8px 0 0 16px;">
+											<li><?php esc_html_e( 'If DNS record does not exist → Creates A record with proxy enabled', 'cloudflare-r2-offload-cdn' ); ?></li>
+											<li><?php esc_html_e( 'If DNS record exists but proxy disabled → Shows warning with fix button', 'cloudflare-r2-offload-cdn' ); ?></li>
+											<li><?php esc_html_e( 'If DNS record exists with proxy → Ready to deploy!', 'cloudflare-r2-offload-cdn' ); ?></li>
+										</ul>
+									</div>
+
+									<p style="margin-top: 16px;"><strong><?php esc_html_e( 'Requirements:', 'cloudflare-r2-offload-cdn' ); ?></strong></p>
+									<ul>
+										<li><?php esc_html_e( 'Domain must be in your Cloudflare account', 'cloudflare-r2-offload-cdn' ); ?></li>
+										<li><?php esc_html_e( 'API Token must have Zone:Edit permission', 'cloudflare-r2-offload-cdn' ); ?></li>
+									</ul>
+								</div>
+							</details>
 						</td>
 					</tr>
 					<tr>
