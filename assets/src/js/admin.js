@@ -45,6 +45,7 @@ import '../scss/admin.scss';
       $('#test-r2-connection').on('click', this.handleTestR2Connection.bind(this));
       $('#cfr2-bulk-offload-all').on('click', this.handleBulkOffload.bind(this));
       $('#cfr2-bulk-restore-all').on('click', this.handleBulkRestore.bind(this));
+      $('#cfr2-bulk-delete-local').on('click', this.handleBulkDeleteLocal.bind(this));
       $('#cfr2-cancel-bulk').on('click', this.handleCancelBulk.bind(this));
       $('#cdn_enabled').on('change', this.handleCDNToggle.bind(this));
       $('#smart_sizes').on('change', this.handleSmartSizesToggle.bind(this));
@@ -85,9 +86,10 @@ import '../scss/admin.scss';
       // Hide save button on Dashboard tab and Bulk Actions tab.
       $('.cloudflare-r2-offload-cdn-form-actions').toggle(tabId !== 'dashboard' && tabId !== 'bulk-actions');
 
-      // Load activity log if on bulk actions tab.
+      // Load activity log and refresh counts if on bulk actions tab.
       if (tabId === 'bulk-actions') {
         this.loadActivityLog();
+        this.refreshButtonCounts();
         this.checkBulkProgress();
       }
     },
@@ -314,6 +316,48 @@ import '../scss/admin.scss';
     },
 
     /**
+     * Handle bulk delete local (disk saving).
+     *
+     * @param {Event} e Click event.
+     */
+    handleBulkDeleteLocal(e) {
+      e.preventDefault();
+
+      if (!confirm('Delete local files for all offloaded media? Files will remain on R2. This cannot be undone.')) {
+        return;
+      }
+
+      const $btn = $(e.currentTarget);
+      $btn.prop('disabled', true).text('Queuing...');
+
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_bulk_delete_local',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+        },
+        success: (response) => {
+          if (response.success) {
+            this.terminalLog('info', `Queued ${response.data.total} files for local deletion.`);
+            this.bulkStats = { completed: 0, failed: 0, total: response.data.total };
+            this.currentAction = 'delete_local';
+            this.startBulkProcessing();
+          } else {
+            this.terminalLog('error', response.data.message);
+            this.showToast(response.data.message, 'error');
+            $btn.prop('disabled', false).text($btn.data('original-text') || 'Free Disk Space');
+          }
+        },
+        error: () => {
+          this.terminalLog('error', 'Failed to queue files for deletion.');
+          this.showToast('Failed to start bulk delete', 'error');
+          $btn.prop('disabled', false).text($btn.data('original-text') || 'Free Disk Space');
+        },
+      });
+    },
+
+    /**
      * Handle cancel bulk.
      *
      * @param {Event} e Click event.
@@ -356,11 +400,13 @@ import '../scss/admin.scss';
 
       $('#cfr2-bulk-offload-all').hide();
       $('#cfr2-bulk-restore-all').hide();
+      $('#cfr2-bulk-delete-local').hide();
       $('#cfr2-retry-all-failed').hide();
       $('#cfr2-cancel-bulk').show();
       $('#cfr2-bulk-progress-section').show();
 
-      const actionText = this.currentAction === 'restore' ? 'restore' : 'offload';
+      const actionTexts = { offload: 'offload', restore: 'restore', delete_local: 'local file deletion' };
+      const actionText = actionTexts[this.currentAction] || 'offload';
       this.terminalLog('info', `Starting ${actionText} process...`);
       this.updateProgressDisplay();
 
@@ -386,14 +432,58 @@ import '../scss/admin.scss';
 
       $('#cfr2-bulk-offload-all').show().prop('disabled', false);
       $('#cfr2-bulk-restore-all').show().prop('disabled', false);
+      $('#cfr2-bulk-delete-local').show().prop('disabled', false);
       $('#cfr2-retry-all-failed').show();
       $('#cfr2-cancel-bulk').hide();
 
       this.bulkStartTime = null;
       this.currentAction = 'offload'; // Reset to default.
 
-      // Refresh page to update counts after bulk operation.
-      setTimeout(() => location.reload(), 1500);
+      // Refresh button counts via AJAX instead of page reload.
+      this.refreshButtonCounts();
+    },
+
+    /**
+     * Refresh button counts via AJAX.
+     */
+    refreshButtonCounts() {
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_get_bulk_counts',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+        },
+        success: (response) => {
+          if (response.success) {
+            const data = response.data;
+
+            // Update Offload All button.
+            const $offloadBtn = $('#cfr2-bulk-offload-all');
+            if (data.not_offloaded > 0) {
+              $offloadBtn.show().text(`Offload All Media (${data.not_offloaded})`);
+            } else {
+              $offloadBtn.hide();
+            }
+
+            // Update Restore All button.
+            const $restoreBtn = $('#cfr2-bulk-restore-all');
+            if (data.offloaded > 0) {
+              $restoreBtn.show().text(`Restore All (${data.offloaded})`);
+            } else {
+              $restoreBtn.hide();
+            }
+
+            // Update Free Disk Space button.
+            const $deleteLocalBtn = $('#cfr2-bulk-delete-local');
+            if (data.disk_saveable > 0) {
+              $deleteLocalBtn.show().text(`Free Disk Space (${data.disk_saveable})`);
+            } else {
+              $deleteLocalBtn.hide();
+            }
+          }
+        },
+      });
     },
 
     /**
@@ -404,8 +494,14 @@ import '../scss/admin.scss';
         return;
       }
 
-      const ajaxAction = this.currentAction === 'restore' ? 'cfr2_process_restore_item' : 'cfr2_process_bulk_item';
-      const actionText = this.currentAction === 'restore' ? 'restore' : 'offload';
+      const ajaxActions = {
+        offload: 'cfr2_process_bulk_item',
+        restore: 'cfr2_process_restore_item',
+        delete_local: 'cfr2_process_delete_local_item',
+      };
+      const actionTexts = { offload: 'offload', restore: 'restore', delete_local: 'delete local' };
+      const ajaxAction = ajaxActions[this.currentAction] || 'cfr2_process_bulk_item';
+      const actionText = actionTexts[this.currentAction] || 'offload';
 
       $.ajax({
         url: myPluginAdmin.ajaxUrl,
@@ -695,28 +791,12 @@ import '../scss/admin.scss';
 
     /**
      * Check bulk progress on page load.
+     * Note: Auto-resume disabled to prevent issues with stale queue data.
+     * Users should manually click buttons to start operations.
      */
     checkBulkProgress() {
-      $.ajax({
-        url: myPluginAdmin.ajaxUrl,
-        type: 'POST',
-        data: {
-          action: 'cfr2_get_bulk_progress',
-          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
-        },
-        success: (response) => {
-          if (response.success && response.data.is_running) {
-            // Resume processing if there are pending items.
-            this.terminalLog('info', 'Resuming pending offload...');
-            this.bulkStats = {
-              completed: response.data.completed,
-              failed: response.data.failed,
-              total: response.data.total,
-            };
-            this.startBulkProcessing();
-          }
-        },
-      });
+      // Auto-resume disabled - was causing issues with incorrect counts
+      // and infinite loops when queue had items from different action types.
     },
 
     /**

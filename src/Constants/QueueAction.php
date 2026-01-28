@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
  * Queue action constants.
  */
 class QueueAction {
-	public const OFFLOAD = 'offload';
-	public const RESTORE = 'restore';
+	public const OFFLOAD      = 'offload';
+	public const RESTORE      = 'restore';
+	public const DELETE_LOCAL = 'delete_local';
 }

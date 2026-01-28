@@ -73,6 +73,20 @@ class OffloadTab {
 						<p class="description"><?php esc_html_e( 'Keep local copies of files after offloading to R2. Disable to save disk space (files will be served from R2/CDN).', 'cloudflare-r2-offload-cdn' ); ?></p>
 					</td>
 				</tr>
+				<tr>
+					<th scope="row">
+						<label for="sync_delete"><?php esc_html_e( 'Sync Delete', 'cloudflare-r2-offload-cdn' ); ?></label>
+					</th>
+					<td>
+						<input type="hidden" name="sync_delete" value="0" />
+						<label class="cloudflare-r2-offload-cdn-toggle">
+							<input type="checkbox" id="sync_delete" name="sync_delete" value="1"
+								<?php checked( 1, $settings['sync_delete'] ?? 0 ); ?> />
+							<span class="cloudflare-r2-offload-cdn-toggle-slider"></span>
+						</label>
+						<p class="description"><?php esc_html_e( 'When deleting media from WordPress, also delete from R2 storage. Disable to keep R2 copies as backup.', 'cloudflare-r2-offload-cdn' ); ?></p>
+					</td>
+				</tr>
 			</table>
 		</div>
 		<?php

@@ -25,10 +25,11 @@ class BulkActionsTab {
 		// Get stats from cached source.
 		$stats = DashboardTab::get_cached_stats();
 
-		$total_count     = $stats['total'];
-		$offloaded_count = $stats['offloaded'];
-		$pending_count   = $stats['pending'];
-		$local_count     = $stats['local'];
+		$total_count         = $stats['total'];
+		$offloaded_count     = $stats['offloaded'];
+		$pending_count       = $stats['pending'];
+		$local_count         = $stats['local'];
+		$disk_saveable_count = $stats['disk_saveable'] ?? 0;
 
 		// Failed count needs fresh query (not cached to show accurate retry count).
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
@@ -47,7 +48,7 @@ class BulkActionsTab {
 			<p class="description"><?php esc_html_e( 'Manage bulk offload operations and monitor progress.', 'cloudflare-r2-offload-cdn' ); ?></p>
 
 			<?php self::render_quick_stats( $total_count, $offloaded_count, $pending_count, $local_count ); ?>
-			<?php self::render_bulk_actions( $failed_count, $offloaded_count, $local_count ); ?>
+			<?php self::render_bulk_actions( $failed_count, $offloaded_count, $local_count, $disk_saveable_count ); ?>
 			<?php self::render_progress_section(); ?>
 			<?php self::render_activity_log(); ?>
 			<?php self::render_error_summary(); ?>
@@ -93,11 +94,12 @@ class BulkActionsTab {
 	/**
 	 * Render bulk actions section.
 	 *
-	 * @param int $failed_count    Failed items count.
-	 * @param int $offloaded_count Offloaded items count.
-	 * @param int $local_count     Local items count.
+	 * @param int $failed_count       Failed items count.
+	 * @param int $offloaded_count    Offloaded items count.
+	 * @param int $local_count        Local items count.
+	 * @param int $disk_saveable_count Offloaded files with local copies that can be deleted.
 	 */
-	private static function render_bulk_actions( int $failed_count, int $offloaded_count, int $local_count ): void {
+	private static function render_bulk_actions( int $failed_count, int $offloaded_count, int $local_count, int $disk_saveable_count = 0 ): void {
 		?>
 		<div class="settings-section cfr2-bulk-actions-section">
 			<h3><?php esc_html_e( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ); ?></h3>
@@ -124,6 +126,14 @@ class BulkActionsTab {
 						<?php
 						/* translators: %d: number of failed items */
 						echo esc_html( sprintf( __( 'Retry Failed (%d)', 'cloudflare-r2-offload-cdn' ), $failed_count ) );
+						?>
+					</button>
+				<?php endif; ?>
+				<?php if ( $disk_saveable_count > 0 ) : ?>
+					<button type="button" id="cfr2-bulk-delete-local" class="button button-secondary" style="color: #d63638;">
+						<?php
+						/* translators: %d: number of items with local copies */
+						echo esc_html( sprintf( __( 'Free Disk Space (%d)', 'cloudflare-r2-offload-cdn' ), $disk_saveable_count ) );
 						?>
 					</button>
 				<?php endif; ?>

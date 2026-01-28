@@ -67,6 +67,133 @@ cmd_build_assets() {
     log_info "Assets built!"
 }
 
+# Clean vendor directory - remove unnecessary files to reduce size
+cmd_clean_vendor() {
+    log_info "Cleaning vendor directory..."
+
+    local vendor_dir="$BUILD_DIR/$PLUGIN_SLUG/vendor"
+
+    if [ ! -d "$vendor_dir" ]; then
+        return
+    fi
+
+    # Remove dev-only packages that should not be in production
+    log_info "Removing dev-only packages..."
+    local dev_packages=(
+        "phpunit"
+        "sebastian"
+        "phpmd"
+        "pdepend"
+        "squizlabs"
+        "phpcsstandards"
+        "phpcompatibility"
+        "wp-coding-standards"
+        "dealerdirect"
+        "yoast"
+        "doctrine"
+        "myclabs"
+        "nikic"
+        "phar-io"
+        "theseer"
+        "composer"
+        "symfony"
+        "psr"
+    )
+
+    for pkg in "${dev_packages[@]}"; do
+        if [ -d "$vendor_dir/$pkg" ]; then
+            rm -rf "$vendor_dir/$pkg"
+            log_info "  Removed: $pkg"
+        fi
+    done
+
+    # Remove documentation and test files
+    find "$vendor_dir" -type f \( \
+        -name "*.md" -o \
+        -name "*.txt" -o \
+        -name "*.rst" -o \
+        -name "LICENSE*" -o \
+        -name "CHANGELOG*" -o \
+        -name "CHANGES*" -o \
+        -name "CONTRIBUTING*" -o \
+        -name "UPGRADE*" -o \
+        -name "README*" -o \
+        -name "composer.json" -o \
+        -name "phpunit.xml*" -o \
+        -name "phpcs.xml*" -o \
+        -name "phpstan.neon*" -o \
+        -name ".travis.yml" -o \
+        -name ".gitignore" -o \
+        -name ".gitattributes" -o \
+        -name ".editorconfig" -o \
+        -name "Makefile" -o \
+        -name "*.dist" \
+    \) -delete 2>/dev/null || true
+
+    # Remove test and doc directories
+    find "$vendor_dir" -type d \( \
+        -name "tests" -o \
+        -name "test" -o \
+        -name "Tests" -o \
+        -name "Test" -o \
+        -name "docs" -o \
+        -name "doc" -o \
+        -name "examples" -o \
+        -name "example" -o \
+        -name ".git" -o \
+        -name ".github" \
+    \) -exec rm -rf {} + 2>/dev/null || true
+
+    # Remove AWS SDK services we don't need (keep only S3-related)
+    local aws_src="$vendor_dir/aws/aws-sdk-php/src"
+    if [ -d "$aws_src" ]; then
+        log_info "Optimizing AWS SDK (keeping S3 only)..."
+
+        # Services to KEEP (required for S3/R2)
+        local keep_services="Api Arn ClientSideMonitoring Credentials Crypto \
+            DefaultsMode Endpoint EndpointDiscovery EndpointV2 Exception Handler \
+            HasDataTrait.php HasMonitoringEventsTrait.php IdempotencyTokenMiddleware.php \
+            LruArrayCache.php Middleware Multipart ResultInterface.php ResultPaginator.php \
+            RetryMiddleware RetryMiddlewareV2.php S3 Signature Sts Token Waiter \
+            data functions.php WrappedHttpHandler.php ClientResolver.php \
+            CommandInterface.php CommandPool.php"
+
+        # Find all service directories in src/ and remove non-essential ones
+        for service_dir in "$aws_src"/*/; do
+            if [ -d "$service_dir" ]; then
+                local service_name=$(basename "$service_dir")
+                local keep=false
+
+                for keep_svc in $keep_services; do
+                    if [ "$service_name" = "$keep_svc" ]; then
+                        keep=true
+                        break
+                    fi
+                done
+
+                if [ "$keep" = false ]; then
+                    rm -rf "$service_dir"
+                fi
+            fi
+        done
+
+        # Also clean up data directory (API definitions) - keep only S3 and Sts
+        local aws_data="$aws_src/data"
+        if [ -d "$aws_data" ]; then
+            for data_dir in "$aws_data"/*/; do
+                if [ -d "$data_dir" ]; then
+                    local data_name=$(basename "$data_dir")
+                    if [[ "$data_name" != "s3" && "$data_name" != "sts" && "$data_name" != "endpoints" ]]; then
+                        rm -rf "$data_dir"
+                    fi
+                fi
+            done
+        fi
+    fi
+
+    log_info "Vendor cleanup complete!"
+}
+
 # Build plugin to dist/
 cmd_build() {
     log_info "Building plugin v${PLUGIN_VERSION}..."
@@ -89,6 +216,7 @@ cmd_build() {
         "${PLUGIN_SLUG}.php"
         "uninstall.php"
         "readme.txt"
+        "LICENSE.txt"
     )
 
     # Directories to include
@@ -136,6 +264,9 @@ cmd_build() {
             fi
         done
     fi
+
+    # Clean up vendor directory - remove unnecessary files
+    cmd_clean_vendor
 
     # Re-install dev deps for development
     if [ -f "composer.json" ]; then

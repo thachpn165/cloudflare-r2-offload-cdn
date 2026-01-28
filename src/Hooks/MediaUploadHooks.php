@@ -9,6 +9,8 @@ namespace ThachPN165\CFR2OffLoad\Hooks;
 
 defined( 'ABSPATH' ) || exit;
 
+use ThachPN165\CFR2OffLoad\Constants\MetaKeys;
+use ThachPN165\CFR2OffLoad\Constants\TransientKeys;
 use ThachPN165\CFR2OffLoad\Interfaces\HookableInterface;
 use ThachPN165\CFR2OffLoad\Services\BulkOperationLogger;
 use ThachPN165\CFR2OffLoad\Services\OffloadService;
@@ -35,8 +37,8 @@ class MediaUploadHooks implements HookableInterface {
 			add_filter( 'wp_generate_attachment_metadata', array( $this, 'on_attachment_metadata_generated' ), 20, 2 );
 		}
 
-		// These hooks should always be active for cleanup and queue processing.
-		add_action( 'delete_attachment', array( $this, 'on_attachment_deleted' ), 10 );
+		// Use priority 5 to run before WordPress deletes metadata (default priority 10).
+		add_action( 'delete_attachment', array( $this, 'on_attachment_deleted' ), 5 );
 		add_action( 'cfr2_process_queue', array( QueueProcessor::class, 'process' ) );
 	}
 
@@ -99,33 +101,96 @@ class MediaUploadHooks implements HookableInterface {
 
 	/**
 	 * Handle attachment deleted.
+	 * If sync_delete is enabled, delete from R2. Otherwise, just clean up local DB.
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 */
 	public function on_attachment_deleted( int $attachment_id ): void {
-		$r2_key = get_post_meta( $attachment_id, '_cfr2_r2_key', true );
+		$r2_key = get_post_meta( $attachment_id, MetaKeys::R2_KEY, true );
 		if ( ! $r2_key ) {
+			return; // Not offloaded, nothing to do.
+		}
+
+		$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+
+		// If sync_delete is enabled, delete from R2.
+		if ( ! empty( $settings['sync_delete'] ) ) {
+			$this->delete_from_r2( $attachment_id, $r2_key );
+		}
+
+		// Always clean up local database entries.
+		$this->cleanup_attachment_data( $attachment_id );
+	}
+
+	/**
+	 * Delete attachment files from R2 (main file + thumbnails).
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $r2_key        Main file R2 key.
+	 */
+	private function delete_from_r2( int $attachment_id, string $r2_key ): void {
+		$credentials = self::get_r2_credentials();
+		if ( empty( $credentials['secret_access_key'] ) ) {
+			BulkOperationLogger::log( $attachment_id, 'error', 'R2 credentials not configured for sync delete' );
 			return;
 		}
 
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom queue table.
-		$wpdb->insert(
-			$wpdb->prefix . 'cfr2_offload_queue',
-			array(
-				'attachment_id' => $attachment_id,
-				'action'        => 'delete',
-				'status'        => 'pending',
-				'created_at'    => current_time( 'mysql' ),
-			),
-			array( '%d', '%s', '%s', '%s' )
-		);
+		$r2 = new R2Client( $credentials );
+		$deleted_count = 0;
 
+		// Delete main file.
+		$result = $r2->delete_file( $r2_key );
+		if ( $result['success'] ) {
+			++$deleted_count;
+		}
+
+		// Delete thumbnails from R2.
+		$thumbnails = get_post_meta( $attachment_id, MetaKeys::THUMBNAILS, true );
+		if ( ! empty( $thumbnails ) && is_array( $thumbnails ) ) {
+			foreach ( $thumbnails as $size => $thumb_key ) {
+				$thumb_result = $r2->delete_file( $thumb_key );
+				if ( $thumb_result['success'] ) {
+					++$deleted_count;
+				}
+			}
+		}
+
+		BulkOperationLogger::log(
+			$attachment_id,
+			'success',
+			sprintf(
+				/* translators: %d: number of files deleted from R2 */
+				__( 'Deleted %d file(s) from R2', 'cloudflare-r2-offload-cdn' ),
+				$deleted_count
+			)
+		);
+	}
+
+	/**
+	 * Clean up attachment data from database.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 */
+	private function cleanup_attachment_data( int $attachment_id ): void {
+		global $wpdb;
+
+		// Delete from offload_status table.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table cleanup.
 		$wpdb->delete(
 			$wpdb->prefix . 'cfr2_offload_status',
 			array( 'attachment_id' => $attachment_id ),
 			array( '%d' )
 		);
+
+		// Delete from queue table (any pending operations).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table cleanup.
+		$wpdb->delete(
+			$wpdb->prefix . 'cfr2_offload_queue',
+			array( 'attachment_id' => $attachment_id ),
+			array( '%d' )
+		);
+
+		// Clear dashboard stats cache.
+		delete_transient( TransientKeys::DASHBOARD_STATS );
 	}
 }

@@ -61,6 +61,7 @@ class MediaLibraryExtension implements HookableInterface {
 		// AJAX handlers for row actions.
 		add_action( 'wp_ajax_cfr2_offload_single', array( $this, 'ajax_offload_single' ) );
 		add_action( 'wp_ajax_cfr2_restore_single', array( $this, 'ajax_restore_single' ) );
+		add_action( 'wp_ajax_cfr2_delete_local_single', array( $this, 'ajax_delete_local_single' ) );
 
 		// Attachment details page.
 		add_filter( 'attachment_fields_to_edit', array( $this, 'add_attachment_fields' ), 10, 2 );
@@ -225,6 +226,17 @@ class MediaLibraryExtension implements HookableInterface {
 				esc_url( admin_url( "admin-ajax.php?action=cfr2_offload_single&id={$post->ID}&nonce={$nonce}&force=1" ) ),
 				esc_html__( 'Re-offload', 'cloudflare-r2-offload-cdn' )
 			);
+
+			// Add "Delete Local" action only if local file exists.
+			$file_path = get_attached_file( $post->ID );
+			if ( $file_path && file_exists( $file_path ) ) {
+				$actions['cfr2_delete_local'] = sprintf(
+					'<a href="%s" class="cfr2-delete-local" style="color: #d63638;" onclick="return confirm(\'%s\');">%s</a>',
+					esc_url( admin_url( "admin-ajax.php?action=cfr2_delete_local_single&id={$post->ID}&nonce={$nonce}" ) ),
+					esc_js( __( 'Delete local files? This cannot be undone. Files will remain on R2.', 'cloudflare-r2-offload-cdn' ) ),
+					esc_html__( 'Delete Local', 'cloudflare-r2-offload-cdn' )
+				);
+			}
 		} else {
 			$actions['cfr2_offload'] = sprintf(
 				'<a href="%s" class="cfr2-offload">%s</a>',
@@ -328,6 +340,13 @@ class MediaLibraryExtension implements HookableInterface {
 			);
 		}
 
+		if ( isset( $_GET['cfr2_local_deleted'] ) ) {
+			printf(
+				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+				esc_html__( 'Local files deleted successfully. Files remain on R2.', 'cloudflare-r2-offload-cdn' )
+			);
+		}
+
 		if ( ! isset( $_GET['cfr2_queued'] ) ) {
 			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 			return;
@@ -410,6 +429,39 @@ class MediaLibraryExtension implements HookableInterface {
 		$offload->restore( $id );
 
 		wp_safe_redirect( add_query_arg( 'cfr2_restored', 1, $redirect_url ) );
+		exit;
+	}
+
+	/**
+	 * AJAX handler for single delete local files (disk saving).
+	 */
+	public function ajax_delete_local_single(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$id    = absint( $_GET['id'] ?? 0 );
+		$nonce = sanitize_text_field( wp_unslash( $_GET['nonce'] ?? '' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( ! wp_verify_nonce( $nonce, 'cfr2_media_action_' . $id ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'cloudflare-r2-offload-cdn' ) );
+		}
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_die( esc_html__( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) );
+		}
+
+		$credentials  = self::get_r2_credentials();
+		$r2           = new R2Client( $credentials );
+		$offload      = new OffloadService( $r2 );
+		$redirect_url = $this->get_safe_redirect_url();
+
+		$result = $offload->delete_local_files( $id );
+
+		if ( $result['success'] ) {
+			wp_safe_redirect( add_query_arg( 'cfr2_local_deleted', 1, $redirect_url ) );
+		} else {
+			set_transient( TransientKeys::ERROR_PREFIX . get_current_user_id(), $result['message'], CacheDuration::ERROR_TTL );
+			wp_safe_redirect( add_query_arg( 'cfr2_error', 1, $redirect_url ) );
+		}
 		exit;
 	}
 

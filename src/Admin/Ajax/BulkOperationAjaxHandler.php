@@ -34,10 +34,13 @@ class BulkOperationAjaxHandler {
 	public function register_hooks(): void {
 		add_action( 'wp_ajax_cfr2_bulk_offload_all', array( $this, 'ajax_bulk_offload_all' ) );
 		add_action( 'wp_ajax_cfr2_bulk_restore_all', array( $this, 'ajax_bulk_restore_all' ) );
+		add_action( 'wp_ajax_cfr2_bulk_delete_local', array( $this, 'ajax_bulk_delete_local' ) );
 		add_action( 'wp_ajax_cfr2_process_bulk_item', array( $this, 'ajax_process_bulk_item' ) );
 		add_action( 'wp_ajax_cfr2_process_restore_item', array( $this, 'ajax_process_restore_item' ) );
+		add_action( 'wp_ajax_cfr2_process_delete_local_item', array( $this, 'ajax_process_delete_local_item' ) );
 		add_action( 'wp_ajax_cfr2_cancel_bulk', array( $this, 'ajax_cancel_bulk' ) );
 		add_action( 'wp_ajax_cfr2_get_bulk_progress', array( $this, 'ajax_get_bulk_progress' ) );
+		add_action( 'wp_ajax_cfr2_get_bulk_counts', array( $this, 'ajax_get_bulk_counts' ) );
 	}
 
 	/**
@@ -99,16 +102,10 @@ class BulkOperationAjaxHandler {
 	}
 
 	/**
-	 * AJAX handler for bulk offload all.
-	 * Queues items for AJAX-based processing.
+	 * Clear old queue items (completed, cancelled, failed) from all actions.
 	 */
-	public function ajax_bulk_offload_all(): void {
-		$this->verify_bulk_nonce();
-		$this->check_permissions();
-
+	private function clear_old_queue_items(): void {
 		global $wpdb;
-
-		// Clear old queue items first.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table cleanup.
 		$wpdb->query(
 			$wpdb->prepare(
@@ -118,6 +115,20 @@ class BulkOperationAjaxHandler {
 				QueueStatus::FAILED
 			)
 		);
+	}
+
+	/**
+	 * AJAX handler for bulk offload all.
+	 * Queues items for AJAX-based processing.
+	 */
+	public function ajax_bulk_offload_all(): void {
+		$this->verify_bulk_nonce();
+		$this->check_permissions();
+
+		global $wpdb;
+
+		// Clear old queue items from all actions.
+		$this->clear_old_queue_items();
 
 		// Get all non-offloaded attachments.
 		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required to find non-offloaded attachments.
@@ -189,13 +200,8 @@ class BulkOperationAjaxHandler {
 
 		global $wpdb;
 
-		// Clear old restore queue items.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table cleanup.
-		$wpdb->delete(
-			$wpdb->prefix . 'cfr2_offload_queue',
-			array( 'action' => QueueAction::RESTORE ),
-			array( '%s' )
-		);
+		// Clear old queue items from all actions.
+		$this->clear_old_queue_items();
 
 		// Get all offloaded attachments.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregating postmeta.
@@ -236,6 +242,178 @@ class BulkOperationAjaxHandler {
 				'total'   => $queued,
 			)
 		);
+	}
+
+	/**
+	 * AJAX handler for bulk delete local files (disk saving).
+	 * Queues offloaded items with local copies for local file deletion.
+	 */
+	public function ajax_bulk_delete_local(): void {
+		$this->verify_bulk_nonce();
+		$this->check_permissions();
+
+		global $wpdb;
+
+		// Clear old queue items from all actions.
+		$this->clear_old_queue_items();
+
+		// Get all offloaded attachments with local copies (local_exists = 1).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
+		$attachments = $wpdb->get_col(
+			"SELECT attachment_id FROM {$wpdb->prefix}cfr2_offload_status
+			 WHERE local_exists = 1"
+		);
+
+		$queued = 0;
+		foreach ( $attachments as $attachment_id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom queue table.
+			$wpdb->insert(
+				$wpdb->prefix . 'cfr2_offload_queue',
+				array(
+					'attachment_id' => $attachment_id,
+					'action'        => QueueAction::DELETE_LOCAL,
+					'status'        => QueueStatus::PENDING,
+					'created_at'    => current_time( 'mysql' ),
+				),
+				array( '%d', '%s', '%s', '%s' )
+			);
+			++$queued;
+		}
+
+		// Clear any cancellation flag.
+		delete_transient( TransientKeys::BULK_CANCELLED );
+
+		wp_send_json_success(
+			array(
+				'message' => sprintf(
+					/* translators: %d: number of files */
+					__( '%d files queued for local deletion.', 'cloudflare-r2-offload-cdn' ),
+					$queued
+				),
+				'total'   => $queued,
+			)
+		);
+	}
+
+	/**
+	 * AJAX handler for process single delete local item.
+	 * Called repeatedly by JavaScript to delete local files one by one.
+	 */
+	public function ajax_process_delete_local_item(): void {
+		$this->verify_bulk_nonce();
+		$this->check_permissions();
+
+		// Check if cancelled.
+		if ( get_transient( TransientKeys::BULK_CANCELLED ) ) {
+			wp_send_json_success(
+				array(
+					'done'    => true,
+					'message' => __( 'Bulk delete cancelled.', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		}
+
+		global $wpdb;
+
+		// Get next pending delete_local item.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Queue processing requires fresh data.
+		$item = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}cfr2_offload_queue
+				 WHERE status = %s AND action = %s
+				 ORDER BY created_at ASC
+				 LIMIT 1",
+				QueueStatus::PENDING,
+				QueueAction::DELETE_LOCAL
+			)
+		);
+
+		if ( ! $item ) {
+			wp_send_json_success(
+				array(
+					'done'    => true,
+					'message' => __( 'All local files deleted.', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		}
+
+		// Mark as processing.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table requires fresh data.
+		$wpdb->update(
+			$wpdb->prefix . 'cfr2_offload_queue',
+			array( 'status' => QueueStatus::PROCESSING ),
+			array( 'id' => $item->id ),
+			array( '%s' ),
+			array( '%d' )
+		);
+
+		$attachment_id = (int) $item->attachment_id;
+		$file_path     = get_attached_file( $attachment_id );
+		$filename      = $file_path ? basename( $file_path ) : "ID: {$attachment_id}";
+
+		// Get credentials (needed for OffloadService constructor).
+		$credentials = $this->get_r2_credentials();
+
+		if ( false === $credentials ) {
+			$this->mark_item_failed( $item->id, 'R2 credentials not configured' );
+			BulkOperationLogger::log( $attachment_id, 'error', 'R2 credentials not configured' );
+
+			wp_send_json_success(
+				array(
+					'done'     => false,
+					'status'   => 'error',
+					'filename' => $filename,
+					'message'  => __( 'R2 credentials not configured', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		}
+
+		$r2      = new R2Client( $credentials );
+		$offload = new OffloadService( $r2 );
+		$result  = $offload->delete_local_files( $attachment_id );
+
+		if ( $result['success'] ) {
+			// Mark completed.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
+			$wpdb->update(
+				$wpdb->prefix . 'cfr2_offload_queue',
+				array(
+					'status'       => QueueStatus::COMPLETED,
+					'processed_at' => current_time( 'mysql' ),
+				),
+				array( 'id' => $item->id ),
+				array( '%s', '%s' ),
+				array( '%d' )
+			);
+
+			$message = $result['deleted_main']
+				? sprintf( __( 'Deleted local files (+%d thumbnails)', 'cloudflare-r2-offload-cdn' ), $result['deleted_thumbs'] )
+				: __( 'No local files to delete', 'cloudflare-r2-offload-cdn' );
+
+			BulkOperationLogger::log( $attachment_id, 'success', $message );
+
+			wp_send_json_success(
+				array(
+					'done'     => false,
+					'status'   => 'success',
+					'filename' => $filename,
+					'message'  => $message,
+				)
+			);
+		} else {
+			$error_msg = $result['message'] ?? 'Unknown error';
+			$this->mark_item_failed( $item->id, $error_msg );
+			BulkOperationLogger::log( $attachment_id, 'error', $error_msg );
+
+			wp_send_json_success(
+				array(
+					'done'     => false,
+					'status'   => 'error',
+					'filename' => $filename,
+					'message'  => $error_msg,
+				)
+			);
+		}
 	}
 
 	/**
@@ -581,6 +759,54 @@ class BulkOperationAjaxHandler {
 			array( 'id' => $item_id ),
 			array( '%s', '%s', '%s' ),
 			array( '%d' )
+		);
+	}
+
+	/**
+	 * AJAX handler for getting bulk button counts.
+	 * Returns updated counts for Offload/Restore/Delete Local buttons.
+	 */
+	public function ajax_get_bulk_counts(): void {
+		$this->verify_bulk_nonce();
+
+		global $wpdb;
+
+		// Clear dashboard stats cache first to ensure fresh data.
+		delete_transient( TransientKeys::DASHBOARD_STATS );
+
+		// Count non-offloaded attachments.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Count query.
+		$total_attachments = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->posts}
+			 WHERE post_type = 'attachment' AND post_status = 'inherit'"
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Count offloaded.
+		$offloaded_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->postmeta}
+				 WHERE meta_key = %s AND meta_value = '1'",
+				MetaKeys::OFFLOADED
+			)
+		);
+
+		$not_offloaded_count = max( 0, $total_attachments - $offloaded_count );
+
+		// Count offloaded with local files (disk saveable).
+		// Only count attachments that still exist and have local_exists = 1.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
+		$disk_saveable_count = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}cfr2_offload_status os
+			 INNER JOIN {$wpdb->posts} p ON os.attachment_id = p.ID
+			 WHERE os.local_exists = 1 AND p.post_type = 'attachment'"
+		);
+
+		wp_send_json_success(
+			array(
+				'offloaded'      => $offloaded_count,
+				'not_offloaded'  => $not_offloaded_count,
+				'disk_saveable'  => $disk_saveable_count,
+			)
 		);
 	}
 }

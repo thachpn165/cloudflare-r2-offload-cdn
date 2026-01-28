@@ -124,8 +124,9 @@ class DashboardTab {
 		$total_attachments = wp_count_posts( 'attachment' );
 		$total_count       = $total_attachments->inherit ?? 0;
 
+		// Count files on R2 (offloaded).
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregating postmeta for stats.
-		$offloaded_count = $wpdb->get_var(
+		$offloaded_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(DISTINCT post_id)
 				 FROM {$wpdb->postmeta}
@@ -134,18 +135,43 @@ class DashboardTab {
 			)
 		);
 
+		// Count pending in queue.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom queue table.
-		$pending_count = $wpdb->get_var(
+		$pending_count = (int) $wpdb->get_var(
 			"SELECT COUNT(DISTINCT attachment_id)
 			 FROM {$wpdb->prefix}cfr2_offload_queue
 			 WHERE status IN ('pending', 'processing')"
 		);
 
+		// Count offloaded files where local copy was deleted (R2 only).
+		// Only count attachments that still exist and have local_exists = 0.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
+		$r2_only_count = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}cfr2_offload_status os
+			 INNER JOIN {$wpdb->posts} p ON os.attachment_id = p.ID
+			 WHERE os.local_exists = 0 AND p.post_type = 'attachment'"
+		);
+
+		// Count offloaded files where local copy still exists (can be deleted to save disk).
+		// Only count attachments that still exist and have local_exists = 1.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
+		$disk_saveable_count = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}cfr2_offload_status os
+			 INNER JOIN {$wpdb->posts} p ON os.attachment_id = p.ID
+			 WHERE os.local_exists = 1 AND p.post_type = 'attachment'"
+		);
+
+		// Local files = Total - (R2 only files) - Pending.
+		// This counts all files that exist locally (both offloaded with local copy AND not offloaded).
+		$local_count = max( 0, $total_count - $r2_only_count - $pending_count );
+
 		return array(
-			'total'     => (int) $total_count,
-			'offloaded' => (int) $offloaded_count,
-			'pending'   => (int) $pending_count,
-			'local'     => max( 0, $total_count - $offloaded_count - $pending_count ),
+			'total'         => $total_count,
+			'offloaded'     => $offloaded_count,
+			'pending'       => $pending_count,
+			'local'         => $local_count,
+			'r2_only'       => $r2_only_count,
+			'disk_saveable' => $disk_saveable_count,
 		);
 	}
 

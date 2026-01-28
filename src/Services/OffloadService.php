@@ -11,6 +11,7 @@ defined( 'ABSPATH' ) || exit;
 
 use ThachPN165\CFR2OffLoad\Constants\MetaKeys;
 use ThachPN165\CFR2OffLoad\Constants\Settings;
+use ThachPN165\CFR2OffLoad\Constants\TransientKeys;
 use ThachPN165\CFR2OffLoad\Hooks\ExtensibilityHooks;
 
 /**
@@ -134,6 +135,9 @@ class OffloadService {
 				'local_deleted' => $deleted_local,
 				'message'       => __( 'Offloaded successfully', 'cloudflare-r2-offload-cdn' ) . $thumb_info,
 			);
+
+			// Clear dashboard stats cache so stats update immediately.
+			delete_transient( TransientKeys::DASHBOARD_STATS );
 
 			// Fire after offload hook.
 			ExtensibilityHooks::after_offload( $attachment_id, $success_result );
@@ -328,6 +332,9 @@ class OffloadService {
 			array( '%d' )
 		);
 
+		// Clear dashboard stats cache so stats update immediately.
+		delete_transient( TransientKeys::DASHBOARD_STATS );
+
 		$result = array( 'success' => true );
 
 		// Fire after restore hook.
@@ -366,6 +373,82 @@ class OffloadService {
 	public function get_local_url( int $attachment_id ): ?string {
 		$url = get_post_meta( $attachment_id, MetaKeys::LOCAL_URL, true );
 		return $url ? $url : null;
+	}
+
+	/**
+	 * Delete local files for an offloaded attachment (disk saving).
+	 * Only works for attachments that are already offloaded to R2.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return array Result array with success/message.
+	 */
+	public function delete_local_files( int $attachment_id ): array {
+		// Verify attachment is offloaded.
+		if ( ! $this->is_offloaded( $attachment_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'Attachment is not offloaded to R2', 'cloudflare-r2-offload-cdn' ),
+			);
+		}
+
+		$file_path = get_attached_file( $attachment_id );
+		if ( ! $file_path ) {
+			return array(
+				'success' => false,
+				'message' => __( 'Could not determine file path', 'cloudflare-r2-offload-cdn' ),
+			);
+		}
+
+		$deleted_main   = false;
+		$deleted_thumbs = 0;
+
+		// Delete main file.
+		if ( file_exists( $file_path ) ) {
+			wp_delete_file( $file_path );
+			$deleted_main = true;
+		}
+
+		// Delete thumbnails.
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		if ( ! empty( $metadata['sizes'] ) ) {
+			$base_dir = dirname( $file_path );
+			foreach ( $metadata['sizes'] as $size => $data ) {
+				$thumb_path = $base_dir . '/' . $data['file'];
+				if ( file_exists( $thumb_path ) ) {
+					wp_delete_file( $thumb_path );
+					++$deleted_thumbs;
+				}
+			}
+		}
+
+		// Update local_exists flag in database.
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
+		$wpdb->update(
+			$wpdb->prefix . 'cfr2_offload_status',
+			array( 'local_exists' => 0 ),
+			array( 'attachment_id' => $attachment_id ),
+			array( '%d' ),
+			array( '%d' )
+		);
+
+		// Clear dashboard stats cache.
+		delete_transient( TransientKeys::DASHBOARD_STATS );
+
+		$message = $deleted_main
+			? sprintf(
+				/* translators: %d: number of thumbnails deleted */
+				__( 'Local files deleted (+%d thumbnails)', 'cloudflare-r2-offload-cdn' ),
+				$deleted_thumbs
+			)
+			: __( 'No local files found to delete', 'cloudflare-r2-offload-cdn' );
+
+		return array(
+			'success'        => true,
+			'deleted_main'   => $deleted_main,
+			'deleted_thumbs' => $deleted_thumbs,
+			'message'        => $message,
+		);
 	}
 
 	/**

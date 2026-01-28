@@ -4,7 +4,7 @@ Tags: cloudflare, r2, cdn, media, offload, image optimization, webp, avif
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,7 +25,7 @@ Offload WordPress media to Cloudflare R2 storage and serve via CDN with automati
 * **Quality Control** - Configurable image quality (1-100)
 * **Worker Auto-Deploy** - One-click Cloudflare Worker deployment for image processing
 * **WooCommerce Support** - Full integration with product images and galleries
-* **Background Processing** - Queue-based processing with Action Scheduler
+* **Background Processing** - Queue-based processing with WP Cron (Action Scheduler supported)
 * **Media Library Integration** - Status column, bulk actions, and row actions
 
 = Requirements =
@@ -181,5 +181,5 @@ For support, feature requests, or bug reports:
 == Credits ==
 
 * Built with AWS SDK for PHP for R2 compatibility
-* Uses Action Scheduler for background processing
+* Uses WP Cron for background processing (Action Scheduler compatible)
 * Cloudflare Workers for image transformations
