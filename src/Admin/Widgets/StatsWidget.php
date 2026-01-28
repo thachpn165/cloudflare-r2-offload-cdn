@@ -40,20 +40,24 @@ class StatsWidget {
 		// Get analytics from Cloudflare API (cached).
 		$analytics = self::get_cached_analytics( $settings );
 
+		<?php
+		$total_requests = $analytics['total_requests'] ?? 0;
+		$total_errors   = $analytics['total_errors'] ?? 0;
+		$success_rate   = $total_requests > 0 ? ( ( $total_requests - $total_errors ) / $total_requests ) * 100 : 0;
 		?>
 		<div class="cfr2-stats-widget">
 			<div class="cfr2-stats-summary">
 				<div class="cfr2-stat-item">
-					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $analytics['total_requests'] ?? 0 ) ); ?></span>
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $total_requests ) ); ?></span>
 					<span class="cfr2-stat-label"><?php esc_html_e( 'Requests This Month', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
 				<div class="cfr2-stat-item">
-					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $analytics['cpu_time_p50_avg'] ?? 0, 1 ) ); ?>ms</span>
-					<span class="cfr2-stat-label"><?php esc_html_e( 'Avg CPU Time (P50)', 'cloudflare-r2-offload-cdn' ); ?></span>
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $success_rate, 1 ) ); ?>%</span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Success Rate', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
 				<div class="cfr2-stat-item">
-					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $analytics['cpu_time_p99_avg'] ?? 0, 1 ) ); ?>ms</span>
-					<span class="cfr2-stat-label"><?php esc_html_e( 'Avg CPU Time (P99)', 'cloudflare-r2-offload-cdn' ); ?></span>
+					<span class="cfr2-stat-value"><?php echo esc_html( number_format( $total_errors ) ); ?></span>
+					<span class="cfr2-stat-label"><?php esc_html_e( 'Errors', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
 			</div>
 
@@ -88,11 +92,9 @@ class StatsWidget {
 	 */
 	private static function get_cached_analytics( array $settings ): array {
 		$default = array(
-			'total_requests'   => 0,
-			'total_errors'     => 0,
-			'cpu_time_p50_avg' => 0,
-			'cpu_time_p99_avg' => 0,
-			'daily'            => array(),
+			'total_requests' => 0,
+			'total_errors'   => 0,
+			'daily'          => array(),
 		);
 
 		// Check if worker is deployed.
