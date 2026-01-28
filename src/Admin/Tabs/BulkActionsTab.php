@@ -50,7 +50,7 @@ class BulkActionsTab {
 			<p class="description"><?php esc_html_e( 'Manage bulk offload operations and monitor progress.', 'cloudflare-r2-offload-cdn' ); ?></p>
 
 			<?php self::render_quick_stats( $total_count, $offloaded_count, $pending_count, $local_count ); ?>
-			<?php self::render_bulk_actions( $failed_count ); ?>
+			<?php self::render_bulk_actions( $failed_count, $offloaded_count, $local_count ); ?>
 			<?php self::render_progress_section(); ?>
 			<?php self::render_activity_log(); ?>
 			<?php self::render_error_summary(); ?>
@@ -96,17 +96,32 @@ class BulkActionsTab {
 	/**
 	 * Render bulk actions section.
 	 *
-	 * @param int $failed_count Failed items count.
+	 * @param int $failed_count    Failed items count.
+	 * @param int $offloaded_count Offloaded items count.
+	 * @param int $local_count     Local items count.
 	 */
-	private static function render_bulk_actions( int $failed_count ): void {
+	private static function render_bulk_actions( int $failed_count, int $offloaded_count, int $local_count ): void {
 		?>
 		<div class="settings-section cfr2-bulk-actions-section">
 			<h3><?php esc_html_e( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ); ?></h3>
 
 			<div class="cfr2-bulk-actions">
-				<button type="button" id="cfr2-bulk-offload-all" class="button button-primary">
-					<?php esc_html_e( 'Offload All Media', 'cloudflare-r2-offload-cdn' ); ?>
-				</button>
+				<?php if ( $local_count > 0 ) : ?>
+					<button type="button" id="cfr2-bulk-offload-all" class="button button-primary">
+						<?php
+						/* translators: %d: number of local items */
+						echo esc_html( sprintf( __( 'Offload All (%d)', 'cloudflare-r2-offload-cdn' ), $local_count ) );
+						?>
+					</button>
+				<?php endif; ?>
+				<?php if ( $offloaded_count > 0 ) : ?>
+					<button type="button" id="cfr2-bulk-restore-all" class="button">
+						<?php
+						/* translators: %d: number of offloaded items */
+						echo esc_html( sprintf( __( 'Restore All (%d)', 'cloudflare-r2-offload-cdn' ), $offloaded_count ) );
+						?>
+					</button>
+				<?php endif; ?>
 				<?php if ( $failed_count > 0 ) : ?>
 					<button type="button" id="cfr2-retry-all-failed" class="button">
 						<?php

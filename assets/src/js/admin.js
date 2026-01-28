@@ -21,6 +21,7 @@ import '../scss/admin.scss';
       this.bulkStartTime = null;
       this.bulkStats = { completed: 0, failed: 0, total: 0 };
       this.isProcessing = false;
+      this.currentAction = 'offload'; // 'offload' or 'restore'
     },
 
     /**
@@ -43,6 +44,7 @@ import '../scss/admin.scss';
       $(document).on('click', '.cloudflare-r2-offload-cdn-accordion-header', this.handleAccordionClick);
       $('#test-r2-connection').on('click', this.handleTestR2Connection.bind(this));
       $('#cfr2-bulk-offload-all').on('click', this.handleBulkOffload.bind(this));
+      $('#cfr2-bulk-restore-all').on('click', this.handleBulkRestore.bind(this));
       $('#cfr2-cancel-bulk').on('click', this.handleCancelBulk.bind(this));
       $('#cdn_enabled').on('change', this.handleCDNToggle.bind(this));
       $('#smart_sizes').on('change', this.handleSmartSizesToggle.bind(this));
@@ -270,6 +272,48 @@ import '../scss/admin.scss';
     },
 
     /**
+     * Handle bulk restore.
+     *
+     * @param {Event} e Click event.
+     */
+    handleBulkRestore(e) {
+      e.preventDefault();
+
+      if (!confirm('Restore all media files from R2 to local?')) {
+        return;
+      }
+
+      const $btn = $(e.currentTarget);
+      $btn.prop('disabled', true).text('Queuing...');
+
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_bulk_restore_all',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+        },
+        success: (response) => {
+          if (response.success) {
+            this.terminalLog('info', `Queued ${response.data.total} files for restore.`);
+            this.bulkStats = { completed: 0, failed: 0, total: response.data.total };
+            this.currentAction = 'restore';
+            this.startBulkProcessing();
+          } else {
+            this.terminalLog('error', response.data.message);
+            this.showToast(response.data.message, 'error');
+            $btn.prop('disabled', false).text($btn.data('original-text') || 'Restore All');
+          }
+        },
+        error: () => {
+          this.terminalLog('error', 'Failed to queue files for restore.');
+          this.showToast('Failed to start bulk restore', 'error');
+          $btn.prop('disabled', false).text($btn.data('original-text') || 'Restore All');
+        },
+      });
+    },
+
+    /**
      * Handle cancel bulk.
      *
      * @param {Event} e Click event.
@@ -277,7 +321,7 @@ import '../scss/admin.scss';
     handleCancelBulk(e) {
       e.preventDefault();
 
-      if (!confirm('Cancel bulk offload?')) {
+      if (!confirm('Cancel bulk operation?')) {
         return;
       }
 
@@ -290,7 +334,7 @@ import '../scss/admin.scss';
         },
         success: (response) => {
           if (response.success) {
-            this.terminalLog('warning', 'Bulk offload cancelled by user.');
+            this.terminalLog('warning', 'Bulk operation cancelled by user.');
             this.showToast(response.data.message, 'success');
             this.stopBulkProcessing();
           } else {
@@ -298,7 +342,7 @@ import '../scss/admin.scss';
           }
         },
         error: () => {
-          this.showToast('Failed to cancel bulk offload', 'error');
+          this.showToast('Failed to cancel bulk operation', 'error');
         },
       });
     },
@@ -311,11 +355,13 @@ import '../scss/admin.scss';
       this.bulkStartTime = Date.now();
 
       $('#cfr2-bulk-offload-all').hide();
+      $('#cfr2-bulk-restore-all').hide();
       $('#cfr2-retry-all-failed').hide();
       $('#cfr2-cancel-bulk').show();
       $('#cfr2-bulk-progress-section').show();
 
-      this.terminalLog('info', 'Starting offload process...');
+      const actionText = this.currentAction === 'restore' ? 'restore' : 'offload';
+      this.terminalLog('info', `Starting ${actionText} process...`);
       this.updateProgressDisplay();
 
       // Start processing loop.
@@ -338,11 +384,16 @@ import '../scss/admin.scss';
         this.progressInterval = null;
       }
 
-      $('#cfr2-bulk-offload-all').show().prop('disabled', false).text('Offload All Media');
+      $('#cfr2-bulk-offload-all').show().prop('disabled', false);
+      $('#cfr2-bulk-restore-all').show().prop('disabled', false);
       $('#cfr2-retry-all-failed').show();
       $('#cfr2-cancel-bulk').hide();
 
       this.bulkStartTime = null;
+      this.currentAction = 'offload'; // Reset to default.
+
+      // Refresh page to update counts after bulk operation.
+      setTimeout(() => location.reload(), 1500);
     },
 
     /**
@@ -353,11 +404,14 @@ import '../scss/admin.scss';
         return;
       }
 
+      const ajaxAction = this.currentAction === 'restore' ? 'cfr2_process_restore_item' : 'cfr2_process_bulk_item';
+      const actionText = this.currentAction === 'restore' ? 'restore' : 'offload';
+
       $.ajax({
         url: myPluginAdmin.ajaxUrl,
         type: 'POST',
         data: {
-          action: 'cfr2_process_bulk_item',
+          action: ajaxAction,
           nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
         },
         success: (response) => {
@@ -368,7 +422,7 @@ import '../scss/admin.scss';
               // All done or cancelled.
               this.terminalLog('info', data.message);
               this.terminalLog('info', `Completed: ${this.bulkStats.completed} | Failed: ${this.bulkStats.failed}`);
-              this.showToast('Bulk offload completed', 'success');
+              this.showToast(`Bulk ${actionText} completed`, 'success');
               this.stopBulkProcessing();
               return;
             }

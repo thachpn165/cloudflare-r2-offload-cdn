@@ -42,6 +42,8 @@ class AdminMenu implements HookableInterface {
 		add_action( 'wp_ajax_cfr2_cancel_bulk', array( $this, 'ajax_cancel_bulk' ) );
 		add_action( 'wp_ajax_cfr2_get_bulk_progress', array( $this, 'ajax_get_bulk_progress' ) );
 		add_action( 'wp_ajax_cfr2_process_bulk_item', array( $this, 'ajax_process_bulk_item' ) );
+		add_action( 'wp_ajax_cfr2_bulk_restore_all', array( $this, 'ajax_bulk_restore_all' ) );
+		add_action( 'wp_ajax_cfr2_process_restore_item', array( $this, 'ajax_process_restore_item' ) );
 		add_action( 'wp_ajax_cfr2_deploy_worker', array( $this, 'ajax_deploy_worker' ) );
 		add_action( 'wp_ajax_cfr2_remove_worker', array( $this, 'ajax_remove_worker' ) );
 		add_action( 'wp_ajax_cfr2_worker_status', array( $this, 'ajax_worker_status' ) );
@@ -438,6 +440,179 @@ class AdminMenu implements HookableInterface {
 				'total'   => $queued,
 			)
 		);
+	}
+
+	/**
+	 * AJAX handler for bulk restore all.
+	 * Queues offloaded items for restore to local.
+	 */
+	public function ajax_bulk_restore_all(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		global $wpdb;
+
+		// Clear old queue items first.
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}cfr2_offload_queue WHERE action = 'restore'" );
+
+		// Get all offloaded attachments.
+		$attachments = $wpdb->get_col(
+			"SELECT DISTINCT post_id FROM {$wpdb->postmeta}
+			 WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"
+		);
+
+		$queued = 0;
+		foreach ( $attachments as $attachment_id ) {
+			$wpdb->insert(
+				$wpdb->prefix . 'cfr2_offload_queue',
+				array(
+					'attachment_id' => $attachment_id,
+					'action'        => 'restore',
+					'status'        => 'pending',
+					'created_at'    => current_time( 'mysql' ),
+				),
+				array( '%d', '%s', '%s', '%s' )
+			);
+			++$queued;
+		}
+
+		// Clear any cancellation flag.
+		delete_transient( 'cfr2_bulk_cancelled' );
+
+		wp_send_json_success(
+			array(
+				'message' => sprintf(
+					/* translators: %d: number of files */
+					__( '%d files queued for restore.', 'cloudflare-r2-offload-cdn' ),
+					$queued
+				),
+				'total'   => $queued,
+			)
+		);
+	}
+
+	/**
+	 * AJAX handler for process single restore item.
+	 * Called repeatedly by JavaScript to restore items one by one.
+	 */
+	public function ajax_process_restore_item(): void {
+		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'cloudflare-r2-offload-cdn' ) ), 403 );
+		}
+
+		// Check if cancelled.
+		if ( get_transient( 'cfr2_bulk_cancelled' ) ) {
+			wp_send_json_success(
+				array(
+					'done'    => true,
+					'message' => __( 'Bulk restore cancelled.', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		}
+
+		global $wpdb;
+
+		// Get next pending restore item.
+		$item = $wpdb->get_row(
+			"SELECT * FROM {$wpdb->prefix}cfr2_offload_queue
+			 WHERE status = 'pending' AND action = 'restore'
+			 ORDER BY created_at ASC
+			 LIMIT 1"
+		);
+
+		if ( ! $item ) {
+			wp_send_json_success(
+				array(
+					'done'    => true,
+					'message' => __( 'All items restored.', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		}
+
+		// Mark as processing.
+		$wpdb->update(
+			$wpdb->prefix . 'cfr2_offload_queue',
+			array( 'status' => 'processing' ),
+			array( 'id' => $item->id ),
+			array( '%s' ),
+			array( '%d' )
+		);
+
+		$attachment_id = (int) $item->attachment_id;
+		$file_path     = get_attached_file( $attachment_id );
+		$filename      = $file_path ? basename( $file_path ) : "ID: {$attachment_id}";
+
+		// Process the restore.
+		$settings   = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+		$encryption = new EncryptionService();
+
+		$credentials = array(
+			'account_id'        => $settings['r2_account_id'] ?? '',
+			'access_key_id'     => $settings['r2_access_key_id'] ?? '',
+			'secret_access_key' => $encryption->decrypt( $settings['r2_secret_access_key'] ?? '' ),
+			'bucket'            => $settings['r2_bucket'] ?? '',
+		);
+
+		if ( empty( $credentials['secret_access_key'] ) ) {
+			$this->mark_item_failed( $item->id, 'R2 credentials not configured' );
+			\ThachPN165\CFR2OffLoad\Services\BulkOperationLogger::log( $attachment_id, 'error', 'R2 credentials not configured' );
+
+			wp_send_json_success(
+				array(
+					'done'     => false,
+					'status'   => 'error',
+					'filename' => $filename,
+					'message'  => __( 'R2 credentials not configured', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		}
+
+		$r2      = new R2Client( $credentials );
+		$offload = new \ThachPN165\CFR2OffLoad\Services\OffloadService( $r2 );
+		$result  = $offload->restore( $attachment_id );
+
+		if ( $result['success'] ) {
+			// Mark completed.
+			$wpdb->update(
+				$wpdb->prefix . 'cfr2_offload_queue',
+				array(
+					'status'       => 'completed',
+					'processed_at' => current_time( 'mysql' ),
+				),
+				array( 'id' => $item->id ),
+				array( '%s', '%s' ),
+				array( '%d' )
+			);
+
+			\ThachPN165\CFR2OffLoad\Services\BulkOperationLogger::log( $attachment_id, 'success', 'Restored to local' );
+
+			wp_send_json_success(
+				array(
+					'done'     => false,
+					'status'   => 'success',
+					'filename' => $filename,
+					'message'  => __( 'Restored to local', 'cloudflare-r2-offload-cdn' ),
+				)
+			);
+		} else {
+			$error_msg = $result['message'] ?? 'Unknown error';
+			$this->mark_item_failed( $item->id, $error_msg );
+			\ThachPN165\CFR2OffLoad\Services\BulkOperationLogger::log( $attachment_id, 'error', $error_msg );
+
+			wp_send_json_success(
+				array(
+					'done'     => false,
+					'status'   => 'error',
+					'filename' => $filename,
+					'message'  => $error_msg,
+				)
+			);
+		}
 	}
 
 	/**
