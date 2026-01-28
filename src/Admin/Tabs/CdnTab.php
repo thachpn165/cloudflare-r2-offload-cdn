@@ -124,7 +124,7 @@ class CdnTab {
 									<?php checked( 1, $settings['smart_sizes'] ?? 0 ); ?> />
 								<span class="cloudflare-r2-offload-cdn-toggle-slider"></span>
 							</label>
-							<p class="description"><?php esc_html_e( 'Calculate optimal sizes attribute based on content width. Reduces bandwidth on mobile.', 'cloudflare-r2-offload-cdn' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Calculate optimal sizes attribute based on content width. Reduces bandwidth on mobile but increases Cloudflare Transformations cost.', 'cloudflare-r2-offload-cdn' ); ?></p>
 						</td>
 					</tr>
 					<tr class="smart-sizes-options" <?php echo empty( $settings['smart_sizes'] ) ? 'style="display:none;"' : ''; ?>>
