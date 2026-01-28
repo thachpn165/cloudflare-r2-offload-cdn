@@ -49,16 +49,16 @@ class Assets implements HookableInterface {
 
 		wp_enqueue_style(
 			'cloudflare-r2-offload-cdn-admin',
-			CLOUDFLARE_R2_OFFLOAD_CDN_URL . 'assets/css/admin.css',
+			CFR2_URL . 'assets/css/admin.css',
 			array(),
-			CLOUDFLARE_R2_OFFLOAD_CDN_VERSION
+			CFR2_VERSION
 		);
 
 		wp_enqueue_script(
 			'cloudflare-r2-offload-cdn-admin',
-			CLOUDFLARE_R2_OFFLOAD_CDN_URL . 'assets/js/admin.js',
+			CFR2_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
-			CLOUDFLARE_R2_OFFLOAD_CDN_VERSION,
+			CFR2_VERSION,
 			true
 		);
 
@@ -90,16 +90,16 @@ class Assets implements HookableInterface {
 
 		wp_enqueue_style(
 			'cloudflare-r2-offload-cdn-public',
-			CLOUDFLARE_R2_OFFLOAD_CDN_URL . 'assets/css/public.css',
+			CFR2_URL . 'assets/css/public.css',
 			array(),
-			CLOUDFLARE_R2_OFFLOAD_CDN_VERSION
+			CFR2_VERSION
 		);
 
 		wp_enqueue_script(
 			'cloudflare-r2-offload-cdn-public',
-			CLOUDFLARE_R2_OFFLOAD_CDN_URL . 'assets/js/public.js',
+			CFR2_URL . 'assets/js/public.js',
 			array(),
-			CLOUDFLARE_R2_OFFLOAD_CDN_VERSION,
+			CFR2_VERSION,
 			true
 		);
 	}

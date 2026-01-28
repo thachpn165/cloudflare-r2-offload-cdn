@@ -9,7 +9,7 @@
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';
 
 // Define test constants.
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_TESTING', true );
+define( 'CFR2_TESTING', true );
 
 // Mock WordPress functions for unit tests.
 if ( ! function_exists( 'plugin_dir_path' ) ) {
@@ -313,8 +313,8 @@ if ( ! class_exists( 'WP_Post' ) ) {
 }
 
 // Define plugin constants.
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_VERSION', '1.0.0' );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_FILE', dirname( __DIR__ ) . '/cloudflare-r2-offload-cdn.php' );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_PATH', dirname( __DIR__ ) . '/' );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_URL', 'http://example.com/wp-content/plugins/cloudflare-r2-offload-cdn/' );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_BASENAME', 'cloudflare-r2-offload-cdn/cloudflare-r2-offload-cdn.php' );
+define( 'CFR2_VERSION', '1.0.0' );
+define( 'CFR2_FILE', dirname( __DIR__ ) . '/cloudflare-r2-offload-cdn.php' );
+define( 'CFR2_PATH', dirname( __DIR__ ) . '/' );
+define( 'CFR2_URL', 'http://example.com/wp-content/plugins/cloudflare-r2-offload-cdn/' );
+define( 'CFR2_BASENAME', 'cloudflare-r2-offload-cdn/cloudflare-r2-offload-cdn.php' );

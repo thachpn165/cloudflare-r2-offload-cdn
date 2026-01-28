@@ -19,15 +19,15 @@
 defined( 'ABSPATH' ) || exit;
 
 // Plugin constants.
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_VERSION', '1.0.0' );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_FILE', __FILE__ );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_PATH', plugin_dir_path( __FILE__ ) );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_URL', plugin_dir_url( __FILE__ ) );
-define( 'CLOUDFLARE_R2_OFFLOAD_CDN_BASENAME', plugin_basename( __FILE__ ) );
+define( 'CFR2_VERSION', '1.0.0' );
+define( 'CFR2_FILE', __FILE__ );
+define( 'CFR2_PATH', plugin_dir_path( __FILE__ ) );
+define( 'CFR2_URL', plugin_dir_url( __FILE__ ) );
+define( 'CFR2_BASENAME', plugin_basename( __FILE__ ) );
 
 // Composer autoload.
-if ( file_exists( CLOUDFLARE_R2_OFFLOAD_CDN_PATH . 'vendor/autoload.php' ) ) {
-	require_once CLOUDFLARE_R2_OFFLOAD_CDN_PATH . 'vendor/autoload.php';
+if ( file_exists( CFR2_PATH . 'vendor/autoload.php' ) ) {
+	require_once CFR2_PATH . 'vendor/autoload.php';
 }
 
 // Initialize plugin.

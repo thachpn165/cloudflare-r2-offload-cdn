@@ -28,15 +28,15 @@ class PluginTest extends TestCase {
 	 * Test plugin constants are defined.
 	 */
 	public function test_plugin_constants_defined(): void {
-		$this->assertTrue( defined( 'CLOUDFLARE_R2_OFFLOAD_CDN_VERSION' ) );
-		$this->assertTrue( defined( 'CLOUDFLARE_R2_OFFLOAD_CDN_PATH' ) );
-		$this->assertTrue( defined( 'CLOUDFLARE_R2_OFFLOAD_CDN_URL' ) );
+		$this->assertTrue( defined( 'CFR2_VERSION' ) );
+		$this->assertTrue( defined( 'CFR2_PATH' ) );
+		$this->assertTrue( defined( 'CFR2_URL' ) );
 	}
 
 	/**
 	 * Test plugin version is valid semver.
 	 */
 	public function test_plugin_version_is_valid(): void {
-		$this->assertMatchesRegularExpression( '/^\d+\.\d+\.\d+$/', CLOUDFLARE_R2_OFFLOAD_CDN_VERSION );
+		$this->assertMatchesRegularExpression( '/^\d+\.\d+\.\d+$/', CFR2_VERSION );
 	}
 }

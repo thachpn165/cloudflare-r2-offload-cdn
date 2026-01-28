@@ -22,7 +22,7 @@ class Activator {
 	public static function activate(): void {
 		// Check PHP version.
 		if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
-			deactivate_plugins( CLOUDFLARE_R2_OFFLOAD_CDN_BASENAME );
+			deactivate_plugins( CFR2_BASENAME );
 			wp_die(
 				esc_html__( 'This plugin requires PHP 7.4 or higher.', 'cloudflare-r2-offload-cdn' ),
 				'Plugin Activation Error',
@@ -32,7 +32,7 @@ class Activator {
 
 		// Check WP version.
 		if ( version_compare( get_bloginfo( 'version' ), '6.0', '<' ) ) {
-			deactivate_plugins( CLOUDFLARE_R2_OFFLOAD_CDN_BASENAME );
+			deactivate_plugins( CFR2_BASENAME );
 			wp_die(
 				esc_html__( 'This plugin requires WordPress 6.0 or higher.', 'cloudflare-r2-offload-cdn' ),
 				'Plugin Activation Error',
