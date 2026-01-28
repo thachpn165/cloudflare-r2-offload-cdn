@@ -156,11 +156,11 @@ class WorkerDeployer {
 	 * @return string Worker script.
 	 */
 	private function get_worker_script( array $config ): string {
-		$template_path = CFR2_PATH . 'src/Templates/worker-script.js';
+		$template_path = \CFR2_PATH . 'src/Templates/worker-script.js';
 		$script        = file_get_contents( $template_path );
 
 		// Replace placeholders.
-		$script = str_replace( '{{VERSION}}', CFR2_VERSION, $script );
+		$script = str_replace( '{{VERSION}}', \CFR2_VERSION, $script );
 
 		return $script;
 	}

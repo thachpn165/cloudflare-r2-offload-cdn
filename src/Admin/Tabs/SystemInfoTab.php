@@ -79,7 +79,7 @@ class SystemInfoTab {
 		// Plugin version.
 		$statuses[] = array(
 			'label'  => __( 'Plugin Version', 'cloudflare-r2-offload-cdn' ),
-			'value'  => CFR2_VERSION,
+			'value'  => \CFR2_VERSION,
 			'status' => 'info',
 		);
 
@@ -211,7 +211,7 @@ class SystemInfoTab {
 
 		// Plugin Info.
 		$lines[] = '## Plugin';
-		$lines[] = 'Version: ' . CFR2_VERSION;
+		$lines[] = 'Version: ' . \CFR2_VERSION;
 		$lines[] = '';
 
 		// WordPress Info.
