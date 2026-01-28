@@ -40,22 +40,9 @@ class Plugin {
 	 */
 	private function __construct() {
 		$this->loader = new Loader();
-		$this->load_action_scheduler();
 		Schema::maybe_upgrade();
 		$this->define_hooks();
 		$this->loader->run();
-	}
-
-	/**
-	 * Load Action Scheduler if not already loaded.
-	 */
-	private function load_action_scheduler(): void {
-		if ( ! class_exists( 'ActionScheduler' ) ) {
-			$action_scheduler_path = CLOUDFLARE_R2_OFFLOAD_CDN_PATH . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
-			if ( file_exists( $action_scheduler_path ) ) {
-				require_once $action_scheduler_path;
-			}
-		}
 	}
 
 	/**

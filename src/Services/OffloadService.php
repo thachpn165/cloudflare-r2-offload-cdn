@@ -64,15 +64,8 @@ class OffloadService {
 		);
 
 		// Schedule queue processor if not already scheduled.
-		if ( function_exists( 'as_next_scheduled_action' ) ) {
-			if ( ! \as_next_scheduled_action( 'cfr2_process_queue' ) ) {
-				\as_schedule_single_action( time(), 'cfr2_process_queue' );
-			}
-		} else {
-			// Fallback to wp_cron if Action Scheduler not available.
-			if ( ! wp_next_scheduled( 'cfr2_process_queue' ) ) {
-				wp_schedule_single_event( time(), 'cfr2_process_queue' );
-			}
+		if ( ! wp_next_scheduled( 'cfr2_process_queue' ) ) {
+			wp_schedule_single_event( time(), 'cfr2_process_queue' );
 		}
 
 		return true;

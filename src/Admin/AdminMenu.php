@@ -364,7 +364,7 @@ class AdminMenu implements HookableInterface {
 
 	/**
 	 * AJAX handler for bulk offload all.
-	 * Queues items for AJAX-based processing (no Action Scheduler).
+	 * Queues items for AJAX-based processing.
 	 */
 	public function ajax_bulk_offload_all(): void {
 		check_ajax_referer( 'cloudflare_r2_offload_cdn_save_settings', 'nonce' );

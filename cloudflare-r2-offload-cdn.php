@@ -30,13 +30,6 @@ if ( file_exists( CLOUDFLARE_R2_OFFLOAD_CDN_PATH . 'vendor/autoload.php' ) ) {
 	require_once CLOUDFLARE_R2_OFFLOAD_CDN_PATH . 'vendor/autoload.php';
 }
 
-// Load Action Scheduler early (must be before plugins_loaded priority 0).
-// See: https://actionscheduler.org/usage/
-$action_scheduler_path = CLOUDFLARE_R2_OFFLOAD_CDN_PATH . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
-if ( file_exists( $action_scheduler_path ) ) {
-	require_once $action_scheduler_path;
-}
-
 // Initialize plugin.
 add_action(
 	'plugins_loaded',
