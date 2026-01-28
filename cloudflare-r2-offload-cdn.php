@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: CloudFlare R2 Offload My Plugin CDN
+ * Plugin Name: CloudFlare R2 Offload & CDN
  * Plugin URI:  https://example.com/cloudflare-r2-offload-cdn
  * Description: A WordPress plugin boilerplate.
  * Version:           1.0.0

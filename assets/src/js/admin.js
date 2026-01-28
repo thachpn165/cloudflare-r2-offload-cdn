@@ -1,5 +1,5 @@
 /**
- * Admin JavaScript for CloudFlare R2 Offload My Plugin CDN
+ * Admin JavaScript for CloudFlare R2 Offload & CDN
  */
 
 import '../scss/admin.scss';

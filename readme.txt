@@ -1,4 +1,4 @@
-=== CloudFlare R2 Offload My Plugin CDN ===
+=== CloudFlare R2 Offload & CDN ===
 Contributors: thachpn165
 Tags: plugin, boilerplate
 Requires at least: 6.0
@@ -12,7 +12,7 @@ A WordPress plugin boilerplate.
 
 == Description ==
 
-CloudFlare R2 Offload My Plugin CDN is a boilerplate for creating WordPress plugins with modern development practices.
+CloudFlare R2 Offload & CDN is a boilerplate for creating WordPress plugins with modern development practices.
 
 **Features:**
 
@@ -27,7 +27,7 @@ CloudFlare R2 Offload My Plugin CDN is a boilerplate for creating WordPress plug
 
 1. Upload the plugin files to `/wp-content/plugins/cloudflare-r2-offload-cdn`
 2. Activate the plugin through the 'Plugins' screen in WordPress
-3. Go to CloudFlare R2 Offload My Plugin CDN in the admin menu to configure
+3. Go to CloudFlare R2 Offload & CDN in the admin menu to configure
 
 == Frequently Asked Questions ==
 

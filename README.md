@@ -63,7 +63,7 @@ npm run build
 docker-compose up -d
 ```
 
-**Access**: Dashboard > CloudFlare R2 Offload My Plugin CDN
+**Access**: Dashboard > CloudFlare R2 Offload & CDN
 
 ## Development Workflow
 

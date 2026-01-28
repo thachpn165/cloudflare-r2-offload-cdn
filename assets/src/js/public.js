@@ -1,5 +1,5 @@
 /**
- * Public JavaScript for CloudFlare R2 Offload My Plugin CDN
+ * Public JavaScript for CloudFlare R2 Offload & CDN
  */
 
 import '../scss/public.scss';

@@ -61,8 +61,8 @@ class AdminMenu implements HookableInterface {
 	 */
 	public function add_menu_page(): void {
 		add_menu_page(
-			__( 'CloudFlare R2 Offload My Plugin CDN Settings', 'cloudflare-r2-offload-cdn' ),
-			__( 'CloudFlare R2 Offload My Plugin CDN', 'cloudflare-r2-offload-cdn' ),
+			__( 'CloudFlare R2 Offload & CDN Settings', 'cloudflare-r2-offload-cdn' ),
+			__( 'CloudFlare R2 Offload & CDN', 'cloudflare-r2-offload-cdn' ),
 			'manage_options',
 			'cloudflare-r2-offload-cdn',
 			array( SettingsPage::class, 'render' ),

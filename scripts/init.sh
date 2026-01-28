@@ -81,7 +81,7 @@ echo "  cloudflare-r2-offload-cdn      → $PLUGIN_SLUG"
 echo "  cloudflare_r2_offload_cdn      → $PLUGIN_SLUG_UNDERSCORE"
 echo "  CLOUDFLARE_R2_OFFLOAD_CDN      → $PLUGIN_SLUG_UPPER"
 echo "  CFR2OffLoad       → $NAMESPACE"
-echo "  CloudFlare R2 Offload My Plugin CDN      → $PLUGIN_NAME"
+echo "  CloudFlare R2 Offload & CDN      → $PLUGIN_NAME"
 echo ""
 
 read -p "Continue? (y/n): " CONFIRM
@@ -138,7 +138,7 @@ replace_in_files "cloudflare-r2-offload-cdn" "$PLUGIN_SLUG"
 replace_in_files "CFR2OffLoad" "$NAMESPACE"
 
 # Replace display name
-replace_in_files "CloudFlare R2 Offload My Plugin CDN" "$PLUGIN_NAME"
+replace_in_files "CloudFlare R2 Offload & CDN" "$PLUGIN_NAME"
 
 # Rename main plugin file
 if [ -f "cloudflare-r2-offload-cdn.php" ]; then

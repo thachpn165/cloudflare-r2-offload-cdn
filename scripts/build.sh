@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# CloudFlare R2 Offload My Plugin CDN Build Script
+# CloudFlare R2 Offload & CDN Build Script
 # =============================================================================
 
 set -e
@@ -234,7 +234,7 @@ cmd_version() {
 # Show help
 cmd_help() {
     echo ""
-    echo "CloudFlare R2 Offload My Plugin CDN Build Script"
+    echo "CloudFlare R2 Offload & CDN Build Script"
     echo ""
     echo "Usage: ./scripts/build.sh [command]"
     echo ""

@@ -22,7 +22,7 @@ class DashboardTab {
 	public static function render(): void {
 		?>
 		<div class="cloudflare-r2-offload-cdn-tab-content active" id="tab-dashboard">
-			<h2><?php esc_html_e( 'Welcome to CloudFlare R2 Offload My Plugin CDN', 'cloudflare-r2-offload-cdn' ); ?></h2>
+			<h2><?php esc_html_e( 'Welcome to CloudFlare R2 Offload & CDN', 'cloudflare-r2-offload-cdn' ); ?></h2>
 			<p class="description"><?php esc_html_e( 'A powerful WordPress plugin boilerplate with modern development practices.', 'cloudflare-r2-offload-cdn' ); ?></p>
 
 			<?php
