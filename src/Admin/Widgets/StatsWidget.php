@@ -40,7 +40,6 @@ class StatsWidget {
 		// Get analytics from Cloudflare API (cached).
 		$analytics = self::get_cached_analytics( $settings );
 
-		<?php
 		$total_requests = $analytics['total_requests'] ?? 0;
 		$total_errors   = $analytics['total_errors'] ?? 0;
 		$success_rate   = $total_requests > 0 ? ( ( $total_requests - $total_errors ) / $total_requests ) * 100 : 0;
