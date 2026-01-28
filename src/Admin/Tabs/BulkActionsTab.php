@@ -156,20 +156,31 @@ class BulkActionsTab {
 	}
 
 	/**
-	 * Render activity log section.
+	 * Render activity log section (terminal style).
 	 */
 	private static function render_activity_log(): void {
 		?>
-		<div class="settings-section cfr2-activity-log-section">
+		<div class="settings-section cfr2-terminal-section">
 			<div class="cfr2-section-header">
-				<h3><?php esc_html_e( 'Activity Log', 'cloudflare-r2-offload-cdn' ); ?></h3>
+				<h3><?php esc_html_e( 'Process Log', 'cloudflare-r2-offload-cdn' ); ?></h3>
 				<button type="button" id="cfr2-clear-log" class="button button-small">
-					<?php esc_html_e( 'Clear Log', 'cloudflare-r2-offload-cdn' ); ?>
+					<?php esc_html_e( 'Clear', 'cloudflare-r2-offload-cdn' ); ?>
 				</button>
 			</div>
 
-			<div class="cfr2-activity-log" id="cfr2-activity-log">
-				<p class="cfr2-no-data"><?php esc_html_e( 'No recent activity.', 'cloudflare-r2-offload-cdn' ); ?></p>
+			<div class="cfr2-terminal" id="cfr2-terminal">
+				<div class="cfr2-terminal-header">
+					<span class="cfr2-terminal-dot red"></span>
+					<span class="cfr2-terminal-dot yellow"></span>
+					<span class="cfr2-terminal-dot green"></span>
+					<span class="cfr2-terminal-title"><?php esc_html_e( 'R2 Offload Terminal', 'cloudflare-r2-offload-cdn' ); ?></span>
+				</div>
+				<div class="cfr2-terminal-body" id="cfr2-terminal-output">
+					<div class="cfr2-terminal-line cfr2-terminal-info">
+						<span class="cfr2-terminal-prompt">$</span>
+						<span><?php esc_html_e( 'Ready. Click "Offload All Media" to start.', 'cloudflare-r2-offload-cdn' ); ?></span>
+					</div>
+				</div>
 			</div>
 		</div>
 		<?php

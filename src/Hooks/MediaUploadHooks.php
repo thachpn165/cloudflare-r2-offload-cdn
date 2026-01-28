@@ -27,9 +27,15 @@ class MediaUploadHooks implements HookableInterface {
 	 * Register hooks.
 	 */
 	public function register_hooks(): void {
-		// Use wp_generate_attachment_metadata filter instead of add_attachment action
-		// This ensures thumbnails are already generated before offloading.
-		add_filter( 'wp_generate_attachment_metadata', array( $this, 'on_attachment_metadata_generated' ), 20, 2 );
+		// Only register auto-offload hook if enabled (avoid overhead when disabled).
+		$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+		if ( ! empty( $settings['auto_offload'] ) ) {
+			// Use wp_generate_attachment_metadata filter instead of add_attachment action
+			// This ensures thumbnails are already generated before offloading.
+			add_filter( 'wp_generate_attachment_metadata', array( $this, 'on_attachment_metadata_generated' ), 20, 2 );
+		}
+
+		// These hooks should always be active for cleanup and queue processing.
 		add_action( 'delete_attachment', array( $this, 'on_attachment_deleted' ), 10 );
 		add_action( 'cfr2_process_queue', array( QueueProcessor::class, 'process' ) );
 	}
@@ -52,11 +58,8 @@ class MediaUploadHooks implements HookableInterface {
 	 * @param int $attachment_id Attachment ID.
 	 */
 	private function process_auto_offload( int $attachment_id ): void {
-		// Check if auto-offload enabled.
+		// Get settings (auto_offload already checked in register_hooks).
 		$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
-		if ( empty( $settings['auto_offload'] ) ) {
-			return;
-		}
 
 		// Validate R2 configured.
 		if ( empty( $settings['r2_account_id'] ) || empty( $settings['r2_bucket'] ) ) {

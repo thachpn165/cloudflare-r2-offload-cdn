@@ -4,8 +4,8 @@
  * Plugin URI:  https://example.com/cloudflare-r2-offload-cdn
  * Description: A WordPress plugin boilerplate.
  * Version:           1.0.0
- * Author:      ThachPN165
- * Author URI:  https://example.com
+ * Author:      thachpn165
+ * Author URI:  https://thachpham.com
  * License:     GPL-2.0+
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: cloudflare-r2-offload-cdn
