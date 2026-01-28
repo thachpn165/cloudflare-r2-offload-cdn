@@ -135,6 +135,8 @@ class AdminMenu implements HookableInterface {
 			'cdn_url'                 => esc_url_raw( wp_unslash( $_POST['cdn_url'] ?? '' ) ),
 			'quality'                 => absint( $_POST['quality'] ?? 85 ),
 			'enable_avif'             => ! empty( $_POST['enable_avif'] ) ? 1 : 0,
+			'smart_sizes'             => ! empty( $_POST['smart_sizes'] ) ? 1 : 0,
+			'content_max_width'       => absint( $_POST['content_max_width'] ?? 800 ),
 			'cf_api_token'            => sanitize_text_field( wp_unslash( $_POST['cf_api_token'] ?? '' ) ),
 			'woocommerce_integration' => ! empty( $_POST['woocommerce_integration'] ) ? 1 : 0,
 			'gutenberg_integration'   => ! empty( $_POST['gutenberg_integration'] ) ? 1 : 0,
@@ -212,6 +214,11 @@ class AdminMenu implements HookableInterface {
 		$sanitized['quality'] = max( 1, min( $quality, 100 ) );
 
 		$sanitized['enable_avif'] = ! empty( $input['enable_avif'] ) ? 1 : 0;
+
+		// Smart sizes settings.
+		$sanitized['smart_sizes'] = ! empty( $input['smart_sizes'] ) ? 1 : 0;
+		$content_max_width        = absint( $input['content_max_width'] ?? 800 );
+		$sanitized['content_max_width'] = max( 320, min( $content_max_width, 1920 ) );
 
 		// Integrations settings.
 		$sanitized['woocommerce_integration'] = ! empty( $input['woocommerce_integration'] ) ? 1 : 0;
@@ -349,6 +356,8 @@ class AdminMenu implements HookableInterface {
 			'cdn_url'                 => '',
 			'quality'                 => 85,
 			'enable_avif'             => 0,
+			'smart_sizes'             => 0,
+			'content_max_width'       => 800,
 			'cf_api_token'            => '',
 			'woocommerce_integration' => 0,
 			'gutenberg_integration'   => 0,

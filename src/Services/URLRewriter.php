@@ -291,11 +291,8 @@ class URLRewriter implements HookableInterface {
 		$quality        = $this->settings['quality'] ?? 85;
 		$enable_avif    = ! empty( $this->settings['enable_avif'] );
 
-		// Extract sizes attribute from img tag.
-		$sizes = '100vw';
-		if ( preg_match( '/sizes=["\']([^"\']+)["\']/', $filtered_image, $matches ) ) {
-			$sizes = $matches[1];
-		}
+		// Extract or calculate sizes attribute.
+		$sizes = $this->get_sizes_attribute( $filtered_image, $original_width );
 
 		// Build srcsets for different formats.
 		$avif_srcset = $this->build_format_srcset( $r2_key, 'avif', $original_width, $quality );
@@ -370,6 +367,51 @@ class URLRewriter implements HookableInterface {
 		}
 
 		return implode( ', ', $srcset_parts );
+	}
+
+	/**
+	 * Get optimal sizes attribute.
+	 *
+	 * @param string $filtered_image Original img tag.
+	 * @param int    $original_width Original image width.
+	 * @return string Sizes attribute value.
+	 */
+	private function get_sizes_attribute( string $filtered_image, int $original_width ): string {
+		// Extract existing sizes from img tag.
+		$existing_sizes = '100vw';
+		if ( preg_match( '/sizes=["\']([^"\']+)["\']/', $filtered_image, $matches ) ) {
+			$existing_sizes = $matches[1];
+		}
+
+		// Return existing if smart sizes disabled.
+		if ( empty( $this->settings['smart_sizes'] ) ) {
+			return $existing_sizes;
+		}
+
+		// Get content max width from settings.
+		$content_max_width = absint( $this->settings['content_max_width'] ?? 800 );
+
+		// Calculate smart sizes based on content width.
+		// Mobile: 100vw (full width)
+		// Tablet: min(100vw, content_max_width)
+		// Desktop: content_max_width (capped)
+		$sizes_parts = array();
+
+		// Mobile breakpoint (up to 640px viewport).
+		$sizes_parts[] = '(max-width: 640px) 100vw';
+
+		// Tablet breakpoint (641px to 1024px).
+		if ( $content_max_width < 1024 ) {
+			$sizes_parts[] = "(max-width: 1024px) min(100vw, {$content_max_width}px)";
+		} else {
+			$sizes_parts[] = '(max-width: 1024px) 100vw';
+		}
+
+		// Desktop: use content max width or original image width (whichever is smaller).
+		$desktop_size   = min( $content_max_width, $original_width );
+		$sizes_parts[]  = "{$desktop_size}px";
+
+		return implode( ', ', $sizes_parts );
 	}
 
 	/**

@@ -113,6 +113,31 @@ class CdnTab {
 							<p class="description"><?php esc_html_e( 'Serve AVIF to supported browsers. Falls back to WebP/original.', 'cloudflare-r2-offload-cdn' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row">
+							<label for="smart_sizes"><?php esc_html_e( 'Smart Sizes', 'cloudflare-r2-offload-cdn' ); ?></label>
+						</th>
+						<td>
+							<input type="hidden" name="smart_sizes" value="0" />
+							<label class="cloudflare-r2-offload-cdn-toggle">
+								<input type="checkbox" id="smart_sizes" name="smart_sizes" value="1"
+									<?php checked( 1, $settings['smart_sizes'] ?? 0 ); ?> />
+								<span class="cloudflare-r2-offload-cdn-toggle-slider"></span>
+							</label>
+							<p class="description"><?php esc_html_e( 'Calculate optimal sizes attribute based on content width. Reduces bandwidth on mobile.', 'cloudflare-r2-offload-cdn' ); ?></p>
+						</td>
+					</tr>
+					<tr class="smart-sizes-options" <?php echo empty( $settings['smart_sizes'] ) ? 'style="display:none;"' : ''; ?>>
+						<th scope="row">
+							<label for="content_max_width"><?php esc_html_e( 'Content Max Width', 'cloudflare-r2-offload-cdn' ); ?></label>
+						</th>
+						<td>
+							<input type="number" id="content_max_width" name="content_max_width"
+								value="<?php echo esc_attr( $settings['content_max_width'] ?? 800 ); ?>"
+								min="320" max="1920" step="10" class="small-text" /> px
+							<p class="description"><?php esc_html_e( 'Maximum content area width in your theme. Used to calculate optimal image sizes.', 'cloudflare-r2-offload-cdn' ); ?></p>
+						</td>
+					</tr>
 				</table>
 
 				<h3><?php esc_html_e( 'Cloudflare API Token', 'cloudflare-r2-offload-cdn' ); ?></h3>

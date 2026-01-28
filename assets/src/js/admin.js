@@ -43,6 +43,7 @@ import '../scss/admin.scss';
       $('#cfr2-bulk-offload-all').on('click', this.handleBulkOffload.bind(this));
       $('#cfr2-cancel-bulk').on('click', this.handleCancelBulk.bind(this));
       $('#cdn_enabled').on('change', this.handleCDNToggle.bind(this));
+      $('#smart_sizes').on('change', this.handleSmartSizesToggle.bind(this));
       $('#quality').on('input', this.handleQualityChange.bind(this));
       $('#deploy-worker').on('click', this.handleDeployWorker.bind(this));
       $('#remove-worker').on('click', this.handleRemoveWorker.bind(this));
@@ -395,6 +396,16 @@ import '../scss/admin.scss';
     handleCDNToggle(e) {
       const isEnabled = $(e.currentTarget).is(':checked');
       $('.cdn-fields').toggle(isEnabled);
+    },
+
+    /**
+     * Handle smart sizes toggle.
+     *
+     * @param {Event} e Change event.
+     */
+    handleSmartSizesToggle(e) {
+      const isEnabled = $(e.currentTarget).is(':checked');
+      $('.smart-sizes-options').toggle(isEnabled);
     },
 
     /**
