@@ -64,6 +64,12 @@ import '../scss/admin.scss';
       // CDN DNS validation.
       $('#validate-cdn-dns').on('click', this.handleValidateCdnDns.bind(this));
       $(document).on('click', '.cfr2-enable-proxy-btn', this.handleEnableDnsProxy.bind(this));
+
+      // Pending items management.
+      $('#cfr2-pending-stat').on('click', this.handleShowPending.bind(this));
+      $('#cfr2-close-pending').on('click', this.handleClosePending.bind(this));
+      $('#cfr2-clear-pending').on('click', this.handleClearPending.bind(this));
+      $(document).on('click', '.cfr2-cancel-pending-item', this.handleCancelPendingItem.bind(this));
     },
 
     /**
@@ -1115,6 +1121,196 @@ import '../scss/admin.scss';
         error: () => {
           this.showToast('Failed to enable proxy', 'error');
           $btn.removeClass('is-loading').prop('disabled', false).text('Enable Proxy Now');
+        },
+      });
+    },
+
+    /**
+     * Handle show pending items.
+     *
+     * @param {Event} e Click event.
+     */
+    handleShowPending(e) {
+      e.preventDefault();
+
+      const $section = $('#cfr2-pending-section');
+      $section.show();
+      this.loadPendingItems();
+    },
+
+    /**
+     * Handle close pending section.
+     *
+     * @param {Event} e Click event.
+     */
+    handleClosePending(e) {
+      e.preventDefault();
+      $('#cfr2-pending-section').hide();
+    },
+
+    /**
+     * Load pending items via AJAX.
+     */
+    loadPendingItems() {
+      const $list = $('#cfr2-pending-list');
+      $list.html('<p class="cfr2-loading">Loading...</p>');
+
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_get_pending_items',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+        },
+        success: (response) => {
+          if (response.success) {
+            const items = response.data.items;
+
+            if (items.length === 0) {
+              $list.html('<p class="cfr2-empty">No pending items in queue.</p>');
+              return;
+            }
+
+            let html = '<table class="cfr2-pending-table"><thead><tr>' +
+              '<th>File</th><th>Action</th><th>Status</th><th></th>' +
+              '</tr></thead><tbody>';
+
+            items.forEach((item) => {
+              const statusClass = item.status === 'processing' ? 'cfr2-status-processing' : 'cfr2-status-pending';
+              const canCancel = item.status === 'pending';
+              const safeId = parseInt(item.id, 10) || 0;
+
+              html += `<tr data-id="${safeId}">
+                <td class="cfr2-pending-filename">${this.escapeHtml(item.filename)}</td>
+                <td><span class="cfr2-action-badge">${this.escapeHtml(item.action)}</span></td>
+                <td><span class="${statusClass}">${this.escapeHtml(item.status)}</span></td>
+                <td>${canCancel ? `<button type="button" class="button button-small cfr2-cancel-pending-item" data-id="${safeId}">Cancel</button>` : '<span class="cfr2-processing-indicator">●</span>'}</td>
+              </tr>`;
+            });
+
+            html += '</tbody></table>';
+            $list.html(html);
+          } else {
+            $list.html('<p class="cfr2-error">Failed to load pending items.</p>');
+          }
+        },
+        error: () => {
+          $list.html('<p class="cfr2-error">Failed to load pending items.</p>');
+        },
+      });
+    },
+
+    /**
+     * Handle cancel single pending item.
+     *
+     * @param {Event} e Click event.
+     */
+    handleCancelPendingItem(e) {
+      e.preventDefault();
+
+      const $btn = $(e.currentTarget);
+      const itemId = $btn.data('id');
+      const $row = $btn.closest('tr');
+
+      $btn.prop('disabled', true).text('Cancelling...');
+
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_cancel_pending_item',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+          item_id: itemId,
+        },
+        success: (response) => {
+          if (response.success) {
+            $row.fadeOut(300, () => {
+              $row.remove();
+              // Check if table is empty.
+              if ($('#cfr2-pending-list tbody tr').length === 0) {
+                $('#cfr2-pending-list').html('<p class="cfr2-empty">No pending items in queue.</p>');
+              }
+            });
+            this.showToast(response.data.message, 'success');
+            this.updatePendingStat();
+          } else {
+            this.showToast(response.data.message, 'error');
+            $btn.prop('disabled', false).text('Cancel');
+          }
+        },
+        error: () => {
+          this.showToast('Failed to cancel item', 'error');
+          $btn.prop('disabled', false).text('Cancel');
+        },
+      });
+    },
+
+    /**
+     * Handle clear all pending items.
+     *
+     * @param {Event} e Click event.
+     */
+    handleClearPending(e) {
+      e.preventDefault();
+
+      if (!confirm('Cancel all pending items? This will not affect items currently being processed.')) {
+        return;
+      }
+
+      const $btn = $(e.currentTarget);
+      $btn.prop('disabled', true).text('Clearing...');
+
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_clear_pending',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+        },
+        success: (response) => {
+          if (response.success) {
+            this.showToast(response.data.message, 'success');
+            this.loadPendingItems();
+            this.updatePendingStat();
+          } else {
+            this.showToast(response.data.message, 'error');
+          }
+        },
+        error: () => {
+          this.showToast('Failed to clear pending items', 'error');
+        },
+        complete: () => {
+          $btn.prop('disabled', false).text('Clear All');
+        },
+      });
+    },
+
+    /**
+     * Update pending stat count.
+     */
+    updatePendingStat() {
+      $.ajax({
+        url: myPluginAdmin.ajaxUrl,
+        type: 'POST',
+        data: {
+          action: 'cfr2_get_bulk_counts',
+          nonce: $('#cloudflare_r2_offload_cdn_nonce').val(),
+        },
+        success: (response) => {
+          if (response.success && typeof response.data.pending !== 'undefined') {
+            const pendingCount = response.data.pending;
+            const $stat = $('#cfr2-pending-stat');
+            $stat.find('.cfr2-stat-value').text(pendingCount.toLocaleString());
+
+            // Update clickable state.
+            if (pendingCount > 0) {
+              $stat.addClass('cfr2-stat-clickable');
+              $stat.find('.dashicons').show();
+            } else {
+              $stat.removeClass('cfr2-stat-clickable');
+              $stat.find('.dashicons').hide();
+            }
+          }
         },
       });
     },

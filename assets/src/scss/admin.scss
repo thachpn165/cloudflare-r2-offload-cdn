@@ -819,6 +819,123 @@ $text-muted: #646970;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
+
+  &.cfr2-stat-clickable {
+    cursor: pointer;
+    @include transition(all, 0.2s);
+
+    &:hover {
+      border-color: $primary-color;
+      background: rgba($primary-color, 0.05);
+    }
+
+    .dashicons {
+      font-size: 14px;
+      vertical-align: middle;
+      color: $primary-color;
+    }
+  }
+}
+
+// Pending Items Section
+#cfr2-pending-section {
+  margin-top: 16px;
+
+  .cfr2-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div {
+      display: flex;
+      gap: 8px;
+    }
+  }
+}
+
+.cfr2-pending-list {
+  max-height: 400px;
+  overflow-y: auto;
+
+  .cfr2-loading,
+  .cfr2-empty,
+  .cfr2-error {
+    padding: 24px;
+    text-align: center;
+    color: $text-muted;
+  }
+
+  .cfr2-error {
+    color: $error-color;
+  }
+}
+
+.cfr2-pending-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid $border-light;
+  }
+
+  th {
+    background: $bg-color;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: $text-muted;
+  }
+
+  td:last-child {
+    text-align: right;
+    width: 80px;
+  }
+
+  .cfr2-pending-filename {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cfr2-action-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba($primary-color, 0.1);
+    color: $primary-color;
+    border-radius: 3px;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .cfr2-status-pending {
+    color: $text-muted;
+  }
+
+  .cfr2-status-processing {
+    color: $primary-color;
+    font-weight: 500;
+  }
+
+  .cfr2-processing-indicator {
+    color: $primary-color;
+    animation: pulse 1s infinite;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .cfr2-bulk-actions {
