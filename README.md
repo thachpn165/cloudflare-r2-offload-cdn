@@ -138,13 +138,6 @@ src/
 └── PublicSide/         # Frontend assets
 ```
 
-## Documentation
-
-- **[Project Overview](docs/project-overview-pdr.md)** - Project goals and requirements
-- **[System Architecture](docs/system-architecture.md)** - Architecture and data flow
-- **[Code Standards](docs/code-standards.md)** - Coding guidelines
-- **[Deployment Guide](docs/deployment-guide.md)** - Build and deployment
-
 ## License
 
 GPL-2.0+
