@@ -345,35 +345,25 @@ class CloudflareAPI {
 		$end_date   = gmdate( 'Y-m-d' );
 
 		// GraphQL query for Workers Analytics.
-		$query = <<<GRAPHQL
-query GetWorkerAnalytics(\$accountId: String!, \$scriptName: String!, \$startDate: Date!, \$endDate: Date!) {
-  viewer {
-    accounts(filter: {accountTag: \$accountId}) {
-      workersInvocationsAdaptive(
-        filter: {
-          scriptName: \$scriptName,
-          date_geq: \$startDate,
-          date_leq: \$endDate
-        },
-        limit: 10000
-      ) {
-        sum {
-          requests
-          subrequests
-          errors
-        }
-        quantiles {
-          cpuTimeP50
-          cpuTimeP99
-        }
-        dimensions {
-          date
-        }
-      }
-    }
-  }
-}
-GRAPHQL;
+		// phpcs:ignore Squiz.Strings.ConcatenationSpacing.PaddingFound -- Multiline GraphQL query for readability.
+		$query = 'query GetWorkerAnalytics($accountId: String!, $scriptName: String!, $startDate: Date!, $endDate: Date!) { ' .
+			'viewer { ' .
+				'accounts(filter: {accountTag: $accountId}) { ' .
+					'workersInvocationsAdaptive(' .
+						'filter: {' .
+							'scriptName: $scriptName,' .
+							'date_geq: $startDate,' .
+							'date_leq: $endDate' .
+						'},' .
+						'limit: 10000' .
+					') { ' .
+						'sum { requests subrequests errors } ' .
+						'quantiles { cpuTimeP50 cpuTimeP99 } ' .
+						'dimensions { date } ' .
+					'} ' .
+				'} ' .
+			'} ' .
+		'}';
 
 		$variables = array(
 			'accountId'  => $this->account_id,
