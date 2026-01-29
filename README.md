@@ -1,5 +1,12 @@
 # CF R2 Offload & CDN
 
+<p align="center">
+  <img src="https://img.shields.io/badge/WP-6.0%2B-21759b?logo=wordpress" alt="WordPress 6.0+">
+  <img src="https://img.shields.io/badge/PHP-8.0%2B-777BB4?logo=php&logoColor=white" alt="PHP 8.0+">
+  <img src="https://img.shields.io/badge/Tested-6.9-success" alt="Tested up to 6.9">
+  <img src="https://img.shields.io/badge/License-GPL--2.0%2B-blue" alt="GPL-2.0+">
+</p>
+
 A production-ready WordPress plugin for offloading media to Cloudflare R2 with automatic CDN delivery and image optimization. Built with modern standards (PSR-4 autoloading, WordPress Coding Standards, Vite for assets).
 
 ## Requirements
