@@ -563,14 +563,16 @@ import '../scss/admin.scss';
     updateProgressDisplay() {
       const { completed, failed, total } = this.bulkStats;
       const processed = completed + failed;
-      const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+      // Cap percentage at 100% to handle edge cases (retry operations).
+      const percentage = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
+      const remaining = Math.max(0, total - processed);
 
       $('.cfr2-progress-fill').css('width', percentage + '%');
       $('.cfr2-progress-percentage').text(percentage + '%');
       $('.cfr2-progress-text').html(
         `<span style="color: #46b450;">✓ ${completed}</span> | ` +
         `<span style="color: #dc3232;">✗ ${failed}</span> | ` +
-        `<span style="color: #646970;">○ ${total - processed} remaining</span>`
+        `<span style="color: #646970;">○ ${remaining} remaining</span>`
       );
     },
 
