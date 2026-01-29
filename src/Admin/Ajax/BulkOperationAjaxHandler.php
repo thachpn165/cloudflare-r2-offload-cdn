@@ -219,13 +219,13 @@ class BulkOperationAjaxHandler {
 	private function get_cancel_message( string $action ): string {
 		switch ( $action ) {
 			case QueueAction::OFFLOAD:
-				return __( 'Bulk offload cancelled.', 'cloudflare-r2-offload-cdn' );
+				return __( 'Bulk offload cancelled.', 'cf-r2-offload-cdn' );
 			case QueueAction::RESTORE:
-				return __( 'Bulk restore cancelled.', 'cloudflare-r2-offload-cdn' );
+				return __( 'Bulk restore cancelled.', 'cf-r2-offload-cdn' );
 			case QueueAction::DELETE_LOCAL:
-				return __( 'Bulk delete cancelled.', 'cloudflare-r2-offload-cdn' );
+				return __( 'Bulk delete cancelled.', 'cf-r2-offload-cdn' );
 			default:
-				return __( 'Operation cancelled.', 'cloudflare-r2-offload-cdn' );
+				return __( 'Operation cancelled.', 'cf-r2-offload-cdn' );
 		}
 	}
 
@@ -238,13 +238,13 @@ class BulkOperationAjaxHandler {
 	private function get_done_message( string $action ): string {
 		switch ( $action ) {
 			case QueueAction::OFFLOAD:
-				return __( 'All items processed.', 'cloudflare-r2-offload-cdn' );
+				return __( 'All items processed.', 'cf-r2-offload-cdn' );
 			case QueueAction::RESTORE:
-				return __( 'All items restored.', 'cloudflare-r2-offload-cdn' );
+				return __( 'All items restored.', 'cf-r2-offload-cdn' );
 			case QueueAction::DELETE_LOCAL:
-				return __( 'All local files deleted.', 'cloudflare-r2-offload-cdn' );
+				return __( 'All local files deleted.', 'cf-r2-offload-cdn' );
 			default:
-				return __( 'Operation completed.', 'cloudflare-r2-offload-cdn' );
+				return __( 'Operation completed.', 'cf-r2-offload-cdn' );
 		}
 	}
 
@@ -268,7 +268,7 @@ class BulkOperationAjaxHandler {
 			array( '%s' )
 		);
 
-		wp_send_json_success( array( 'message' => __( 'Bulk offload cancelled.', 'cloudflare-r2-offload-cdn' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Bulk offload cancelled.', 'cf-r2-offload-cdn' ) ) );
 	}
 
 	/**
@@ -316,7 +316,7 @@ class BulkOperationAjaxHandler {
 		$item_id = isset( $_POST['item_id'] ) ? absint( $_POST['item_id'] ) : 0;
 
 		if ( ! $item_id ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid item ID.', 'cloudflare-r2-offload-cdn' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid item ID.', 'cf-r2-offload-cdn' ) ) );
 		}
 
 		global $wpdb;
@@ -338,9 +338,9 @@ class BulkOperationAjaxHandler {
 			// Clear stats cache.
 			delete_transient( TransientKeys::DASHBOARD_STATS );
 
-			wp_send_json_success( array( 'message' => __( 'Item cancelled.', 'cloudflare-r2-offload-cdn' ) ) );
+			wp_send_json_success( array( 'message' => __( 'Item cancelled.', 'cf-r2-offload-cdn' ) ) );
 		} else {
-			wp_send_json_error( array( 'message' => __( 'Could not cancel item. It may already be processing.', 'cloudflare-r2-offload-cdn' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not cancel item. It may already be processing.', 'cf-r2-offload-cdn' ) ) );
 		}
 	}
 
@@ -373,7 +373,7 @@ class BulkOperationAjaxHandler {
 			array(
 				'message'   => sprintf(
 					/* translators: %d: number of items cancelled */
-					__( '%d pending items cancelled.', 'cloudflare-r2-offload-cdn' ),
+					__( '%d pending items cancelled.', 'cf-r2-offload-cdn' ),
 					$updated ?: 0
 				),
 				'cancelled' => $updated ?: 0,
@@ -414,7 +414,7 @@ class BulkOperationAjaxHandler {
 			array(
 				'message' => sprintf(
 					/* translators: %1$d: number of files, %2$s: action */
-					__( '%1$d files queued for %2$s.', 'cloudflare-r2-offload-cdn' ),
+					__( '%1$d files queued for %2$s.', 'cf-r2-offload-cdn' ),
 					$queued,
 					$action
 				),

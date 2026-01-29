@@ -8,7 +8,7 @@
  * Author URI:  https://thachpham.com
  * License:     GPL-2.0+
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: cloudflare-r2-offload-cdn
+ * Text Domain: cf-r2-offload-cdn
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 8.0

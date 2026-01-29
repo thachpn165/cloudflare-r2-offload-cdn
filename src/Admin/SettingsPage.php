@@ -26,7 +26,7 @@ class SettingsPage {
 	 */
 	public static function render(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to access this page.', 'cloudflare-r2-offload-cdn' ) );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'cf-r2-offload-cdn' ) );
 		}
 
 		// Add frame-busting headers to prevent clickjacking.
@@ -60,27 +60,27 @@ class SettingsPage {
 	private static function get_tabs(): array {
 		return array(
 			'dashboard'    => array(
-				'label' => __( 'Dashboard', 'cloudflare-r2-offload-cdn' ),
+				'label' => __( 'Dashboard', 'cf-r2-offload-cdn' ),
 				'icon'  => 'dashicons-dashboard',
 			),
 			'storage'      => array(
-				'label' => __( 'Storage', 'cloudflare-r2-offload-cdn' ),
+				'label' => __( 'Storage', 'cf-r2-offload-cdn' ),
 				'icon'  => 'dashicons-cloud-saved',
 			),
 			'cdn'          => array(
-				'label' => __( 'CDN', 'cloudflare-r2-offload-cdn' ),
+				'label' => __( 'CDN', 'cf-r2-offload-cdn' ),
 				'icon'  => 'dashicons-performance',
 			),
 			'offload'      => array(
-				'label' => __( 'Offload', 'cloudflare-r2-offload-cdn' ),
+				'label' => __( 'Offload', 'cf-r2-offload-cdn' ),
 				'icon'  => 'dashicons-upload',
 			),
 			'bulk-actions' => array(
-				'label' => __( 'Bulk Actions', 'cloudflare-r2-offload-cdn' ),
+				'label' => __( 'Bulk Actions', 'cf-r2-offload-cdn' ),
 				'icon'  => 'dashicons-update',
 			),
 			'system-info'  => array(
-				'label' => __( 'System Info', 'cloudflare-r2-offload-cdn' ),
+				'label' => __( 'System Info', 'cf-r2-offload-cdn' ),
 				'icon'  => 'dashicons-info',
 			),
 		);
@@ -112,11 +112,11 @@ class SettingsPage {
 			<div class="cfr2-sidebar-footer">
 				<a href="https://thachpham.com/contact" target="_blank" rel="noopener" class="button cfr2-support-btn">
 					<span class="dashicons dashicons-sos"></span>
-					<?php esc_html_e( 'Get Support', 'cloudflare-r2-offload-cdn' ); ?>
+					<?php esc_html_e( 'Get Support', 'cf-r2-offload-cdn' ); ?>
 				</a>
 				<div class="cfr2-plugin-info">
 					<span class="cfr2-version">v<?php echo esc_html( \CFR2_VERSION ); ?></span>
-					<span class="cfr2-author"><?php esc_html_e( 'by', 'cloudflare-r2-offload-cdn' ); ?> <a href="https://thachpham.com" target="_blank" rel="noopener">ThachPham</a></span>
+					<span class="cfr2-author"><?php esc_html_e( 'by', 'cf-r2-offload-cdn' ); ?> <a href="https://thachpham.com" target="_blank" rel="noopener">ThachPham</a></span>
 				</div>
 			</div>
 		</div>
@@ -144,7 +144,7 @@ class SettingsPage {
 
 				<div class="cloudflare-r2-offload-cdn-form-actions">
 					<button type="submit" class="button button-primary cloudflare-r2-offload-cdn-save-btn">
-						<span class="cloudflare-r2-offload-cdn-save-text"><?php esc_html_e( 'Save Settings', 'cloudflare-r2-offload-cdn' ); ?></span>
+						<span class="cloudflare-r2-offload-cdn-save-text"><?php esc_html_e( 'Save Settings', 'cf-r2-offload-cdn' ); ?></span>
 						<span class="cloudflare-r2-offload-cdn-save-loading spinner"></span>
 					</button>
 				</div>
@@ -152,8 +152,8 @@ class SettingsPage {
 
 			<div class="cloudflare-r2-offload-cdn-disclaimer" style="margin-top: 30px; padding: 15px; background: #f9f9f9; border-left: 4px solid #ccc; color: #666; font-size: 12px;">
 				<p style="margin: 0;">
-					<strong><?php esc_html_e( 'Disclaimer:', 'cloudflare-r2-offload-cdn' ); ?></strong>
-					<?php esc_html_e( 'This plugin is an independent, third-party project and is not affiliated with, endorsed by, or officially associated with Cloudflare, Inc. "Cloudflare" and "R2" are trademarks of Cloudflare, Inc. The use of these names is solely for descriptive purposes to indicate compatibility with Cloudflare services.', 'cloudflare-r2-offload-cdn' ); ?>
+					<strong><?php esc_html_e( 'Disclaimer:', 'cf-r2-offload-cdn' ); ?></strong>
+					<?php esc_html_e( 'This plugin is an independent, third-party project and is not affiliated with, endorsed by, or officially associated with Cloudflare, Inc. "Cloudflare" and "R2" are trademarks of Cloudflare, Inc. The use of these names is solely for descriptive purposes to indicate compatibility with Cloudflare services.', 'cf-r2-offload-cdn' ); ?>
 				</p>
 			</div>
 		</div>
