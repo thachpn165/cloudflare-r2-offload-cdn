@@ -39,6 +39,7 @@ A production-ready WordPress plugin for offloading media to Cloudflare R2 with a
 ### Security & Quality
 - **Enterprise Security**: Nonce verification, capability checks, input sanitization
 - **Encrypted Credentials**: API keys stored encrypted in database
+- **Safe Uninstall**: Auto-restore image URLs to local when deactivating (no broken images)
 - **WordPress Coding Standards**: PHPCS compliant
 - **Build Tools**: Vite for assets, build.sh for ZIP/SVN deployment
 
