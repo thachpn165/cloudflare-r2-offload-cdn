@@ -147,10 +147,14 @@ class MediaUploadHooks implements HookableInterface {
 		// Delete thumbnails from R2.
 		$thumbnails = get_post_meta( $attachment_id, MetaKeys::THUMBNAILS, true );
 		if ( ! empty( $thumbnails ) && is_array( $thumbnails ) ) {
-			foreach ( $thumbnails as $size => $thumb_key ) {
-				$thumb_result = $r2->delete_file( $thumb_key );
-				if ( $thumb_result['success'] ) {
-					++$deleted_count;
+			foreach ( $thumbnails as $size => $thumb_data ) {
+				// Thumbnails are stored as array with 'r2_key' and 'url'.
+				$thumb_key = is_array( $thumb_data ) ? ( $thumb_data['r2_key'] ?? '' ) : $thumb_data;
+				if ( ! empty( $thumb_key ) ) {
+					$thumb_result = $r2->delete_file( $thumb_key );
+					if ( $thumb_result['success'] ) {
+						++$deleted_count;
+					}
 				}
 			}
 		}

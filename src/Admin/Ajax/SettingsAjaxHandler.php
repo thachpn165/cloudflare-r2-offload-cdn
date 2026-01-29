@@ -86,6 +86,7 @@ class SettingsAjaxHandler {
 			'auto_offload'         => ! empty( $_POST['auto_offload'] ) ? 1 : 0,
 			'batch_size'           => absint( $_POST['batch_size'] ?? BatchConfig::DEFAULT_SIZE ),
 			'keep_local_files'     => ! empty( $_POST['keep_local_files'] ) ? 1 : 0,
+			'sync_delete'          => ! empty( $_POST['sync_delete'] ) ? 1 : 0,
 			'cdn_enabled'          => ! empty( $_POST['cdn_enabled'] ) ? 1 : 0,
 			'cdn_url'              => esc_url_raw( wp_unslash( $_POST['cdn_url'] ?? '' ) ),
 			'quality'              => absint( $_POST['quality'] ?? 85 ),
@@ -158,6 +159,7 @@ class SettingsAjaxHandler {
 		$batch_size                = absint( $input['batch_size'] ?? BatchConfig::DEFAULT_SIZE );
 		$sanitized['batch_size']   = max( BatchConfig::MIN_SIZE, min( $batch_size, BatchConfig::MAX_SIZE ) );
 		$sanitized['keep_local_files'] = ! empty( $input['keep_local_files'] ) ? 1 : 0;
+		$sanitized['sync_delete']      = ! empty( $input['sync_delete'] ) ? 1 : 0;
 
 		// CDN settings.
 		$sanitized['cdn_enabled'] = ! empty( $input['cdn_enabled'] ) ? 1 : 0;
