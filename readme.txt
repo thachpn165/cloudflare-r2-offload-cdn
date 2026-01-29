@@ -222,3 +222,9 @@ For support, feature requests, or bug reports:
 * Built with AWS SDK for PHP for R2 compatibility
 * Uses WP Cron for background processing (Action Scheduler compatible)
 * Cloudflare Workers for image transformations
+
+== Disclaimer ==
+
+This plugin is an independent, third-party project and is **not affiliated with, endorsed by, or officially associated with Cloudflare, Inc.** in any way. "Cloudflare" and "R2" are trademarks of Cloudflare, Inc. The use of these names is solely for descriptive purposes to indicate compatibility with Cloudflare services.
+
+This plugin is developed and maintained independently by the plugin author and the open-source community.
