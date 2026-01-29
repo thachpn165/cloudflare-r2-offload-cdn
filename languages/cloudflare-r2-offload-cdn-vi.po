@@ -1,0 +1,890 @@
+# Vietnamese translations for CloudFlare R2 Offload & CDN plugin.
+# Copyright (C) 2026 ThachPham
+# This file is distributed under the GPL-2.0+.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CloudFlare R2 Offload & CDN 1.0.0\n"
+"Report-Msgid-Bugs-To: https://thachpham.com/contact\n"
+"POT-Creation-Date: 2026-01-29T11:26:00+07:00\n"
+"PO-Revision-Date: 2026-01-29T11:26:00+07:00\n"
+"Last-Translator: ThachPham <thachpn165@gmail.com>\n"
+"Language-Team: Vietnamese <vi@li.org>\n"
+"Language: vi_VN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "CloudFlare R2 Offload & CDN"
+msgstr "CloudFlare R2 Offload & CDN"
+
+msgid "CloudFlare R2 Offload & CDN Settings"
+msgstr "Cài đặt CloudFlare R2 Offload & CDN"
+
+msgid "Dashboard"
+msgstr "Bảng điều khiển"
+
+msgid "Setup Guides"
+msgstr "Hướng dẫn cài đặt"
+
+msgid "1. Create R2 Bucket"
+msgstr "1. Tạo R2 Bucket"
+
+msgid "2. Create Cloudflare API Token"
+msgstr "2. Tạo API Token Cloudflare"
+
+msgid "3. Configure CDN URL"
+msgstr "3. Cấu hình URL CDN"
+
+msgid "4. Offload Media to R2"
+msgstr "4. Chuyển Media lên R2"
+
+msgid "5. Image Optimization Settings"
+msgstr "5. Cài đặt tối ưu hình ảnh"
+
+msgid "Log in to <a href=\"https://dash.cloudflare.com\" target=\"_blank\">Cloudflare Dashboard</a>"
+msgstr "Đăng nhập vào <a href=\"https://dash.cloudflare.com\" target=\"_blank\">Cloudflare Dashboard</a>"
+
+msgid "Go to <strong>R2 Object Storage</strong> in the left sidebar"
+msgstr "Vào <strong>R2 Object Storage</strong> trong thanh bên trái"
+
+msgid "Click <strong>Create bucket</strong>"
+msgstr "Nhấn <strong>Create bucket</strong>"
+
+msgid "Enter bucket name (e.g., <code>my-wp-media</code>) and select location"
+msgstr "Nhập tên bucket (ví dụ: <code>my-wp-media</code>) và chọn vị trí"
+
+msgid "Click <strong>Create bucket</strong> to finish"
+msgstr "Nhấn <strong>Create bucket</strong> để hoàn tất"
+
+msgid "Your Account ID is shown at the top right of the R2 page."
+msgstr "Account ID hiển thị ở góc trên bên phải trang R2."
+
+msgid "In R2 page, click <strong>Manage R2 API Tokens</strong>"
+msgstr "Trong trang R2, nhấn <strong>Manage R2 API Tokens</strong>"
+
+msgid "Click <strong>Create API token</strong>"
+msgstr "Nhấn <strong>Create API token</strong>"
+
+msgid "Set permissions: <strong>Object Read & Write</strong>"
+msgstr "Đặt quyền: <strong>Object Read & Write</strong>"
+
+msgid "Specify bucket (or all buckets)"
+msgstr "Chỉ định bucket (hoặc tất cả buckets)"
+
+msgid "Click <strong>Create Token</strong>"
+msgstr "Nhấn <strong>Create Token</strong>"
+
+msgid "Copy <strong>Access Key ID</strong> and <strong>Secret Access Key</strong>"
+msgstr "Sao chép <strong>Access Key ID</strong> và <strong>Secret Access Key</strong>"
+
+msgid "In R2 bucket settings, go to <strong>Settings</strong> tab"
+msgstr "Trong cài đặt bucket R2, vào tab <strong>Settings</strong>"
+
+msgid "How to enable public access →"
+msgstr "Cách bật truy cập công khai →"
+
+msgid "Enter the CDN URL in the CDN tab (e.g., https://cdn.yourdomain.com)"
+msgstr "Nhập URL CDN trong tab CDN (ví dụ: https://cdn.yourdomain.com)"
+
+msgid "Automatic Offload:"
+msgstr "Tự động chuyển:"
+
+msgid "Enable <strong>Auto Offload</strong> in Offload tab"
+msgstr "Bật <strong>Tự động chuyển</strong> trong tab Offload"
+
+msgid "New uploads will be automatically offloaded to R2"
+msgstr "Các tệp tải lên mới sẽ tự động được chuyển lên R2"
+
+msgid "Manual Offload:"
+msgstr "Chuyển thủ công:"
+
+msgid "In Media Library, click <strong>Offload to R2</strong> for individual items"
+msgstr "Trong Thư viện Media, nhấn <strong>Chuyển lên R2</strong> cho từng mục"
+
+msgid "Or use attachment edit page for single file offload"
+msgstr "Hoặc dùng trang chỉnh sửa để chuyển từng tệp"
+
+msgid "Bulk Offload Existing Media:"
+msgstr "Chuyển hàng loạt Media hiện có:"
+
+msgid "Go to <strong>Bulk Actions</strong> tab"
+msgstr "Vào tab <strong>Bulk Actions</strong>"
+
+msgid "Set batch size (25-50 recommended)"
+msgstr "Đặt kích thước batch (khuyến nghị 25-50)"
+
+msgid "Click <strong>Start Bulk Offload</strong>"
+msgstr "Nhấn <strong>Bắt đầu chuyển hàng loạt</strong>"
+
+msgid "Wait for completion (you can cancel anytime)"
+msgstr "Đợi hoàn thành (có thể hủy bất cứ lúc nào)"
+
+msgid "Configure image optimization in the <strong>CDN</strong> tab:"
+msgstr "Cấu hình tối ưu hình ảnh trong tab <strong>CDN</strong>:"
+
+msgid "Deploy Worker first (see step 4)"
+msgstr "Triển khai Worker trước (xem bước 4)"
+
+msgid "Cost Information:"
+msgstr "Thông tin chi phí:"
+
+msgid "R2 Storage: $0.015/GB/month"
+msgstr "Lưu trữ R2: $0.015/GB/tháng"
+
+msgid "R2 Class A Operations (write): $4.50/million"
+msgstr "Thao tác R2 Class A (ghi): $4.50/triệu"
+
+msgid "R2 Class B Operations (read): $0.36/million"
+msgstr "Thao tác R2 Class B (đọc): $0.36/triệu"
+
+msgid "Image Transformations: First 5,000/month free, then $0.50/1,000"
+msgstr "Chuyển đổi hình ảnh: 5.000 lần/tháng miễn phí, sau đó $0.50/1.000"
+
+msgid "Monitor usage in Worker Statistics above and Cloudflare Dashboard."
+msgstr "Theo dõi sử dụng trong Worker Statistics ở trên và Cloudflare Dashboard."
+
+msgid "Quick Stats"
+msgstr "Thống kê nhanh"
+
+msgid "Total Media"
+msgstr "Tổng Media"
+
+msgid "Local"
+msgstr "Cục bộ"
+
+msgid "Offloaded"
+msgstr "Đã chuyển"
+
+msgid "Pending"
+msgstr "Đang chờ"
+
+msgid "Worker Statistics"
+msgstr "Thống kê Worker"
+
+msgid "Requests This Month"
+msgstr "Yêu cầu tháng này"
+
+msgid "View detailed analytics in your <a href=\"%s\" target=\"_blank\" rel=\"noopener\">Cloudflare Dashboard</a>"
+msgstr "Xem phân tích chi tiết trong <a href=\"%s\" target=\"_blank\" rel=\"noopener\">Cloudflare Dashboard</a>"
+
+msgid "Deploy the Worker to see analytics."
+msgstr "Triển khai Worker để xem phân tích."
+
+msgid "System Status"
+msgstr "Trạng thái hệ thống"
+
+msgid "R2 Credentials"
+msgstr "Thông tin R2"
+
+msgid "Configured"
+msgstr "Đã cấu hình"
+
+msgid "Not configured"
+msgstr "Chưa cấu hình"
+
+msgid "CDN Status"
+msgstr "Trạng thái CDN"
+
+msgid "Enabled"
+msgstr "Đã bật"
+
+msgid "Disabled"
+msgstr "Đã tắt"
+
+msgid "Worker Status"
+msgstr "Trạng thái Worker"
+
+msgid "Deployed"
+msgstr "Đã triển khai"
+
+msgid "Not deployed"
+msgstr "Chưa triển khai"
+
+msgid "Storage"
+msgstr "Lưu trữ"
+
+msgid "R2 Storage Configuration"
+msgstr "Cấu hình lưu trữ R2"
+
+msgid "Configure your Cloudflare R2 storage credentials. Get these from Cloudflare Dashboard > R2 > Manage R2 API Tokens."
+msgstr "Cấu hình thông tin lưu trữ Cloudflare R2. Lấy từ Cloudflare Dashboard > R2 > Manage R2 API Tokens."
+
+msgid "Get R2 API Credentials:"
+msgstr "Lấy thông tin API R2:"
+
+msgid "Go to <a href=\"https://dash.cloudflare.com/profile/api-tokens\" target=\"_blank\">API Tokens</a> page"
+msgstr "Vào trang <a href=\"https://dash.cloudflare.com/profile/api-tokens\" target=\"_blank\">API Tokens</a>"
+
+msgid "Select <strong>Create Custom Token</strong>"
+msgstr "Chọn <strong>Create Custom Token</strong>"
+
+msgid "Add the following permissions:"
+msgstr "Thêm các quyền sau:"
+
+msgid "Permission"
+msgstr "Quyền"
+
+msgid "Access"
+msgstr "Truy cập"
+
+msgid "Purpose"
+msgstr "Mục đích"
+
+msgid "Click <strong>Continue to summary</strong> > <strong>Create Token</strong>"
+msgstr "Nhấn <strong>Continue to summary</strong> > <strong>Create Token</strong>"
+
+msgid "Copy the token (shown only once!)"
+msgstr "Sao chép token (chỉ hiển thị một lần!)"
+
+msgid "Account ID"
+msgstr "Account ID"
+
+msgid "Your Cloudflare account ID (alphanumeric)."
+msgstr "Cloudflare Account ID của bạn (chữ và số)."
+
+msgid "Access Key ID"
+msgstr "Access Key ID"
+
+msgid "R2 Access Key ID from API token."
+msgstr "R2 Access Key ID từ API token."
+
+msgid "Secret Access Key"
+msgstr "Secret Access Key"
+
+msgid "R2 Secret Access Key (encrypted in database). Leave blank to keep existing value."
+msgstr "R2 Secret Access Key (được mã hóa trong database). Để trống để giữ giá trị hiện tại."
+
+msgid "Bucket Name"
+msgstr "Tên Bucket"
+
+msgid "R2 bucket name (lowercase alphanumeric and hyphens only)."
+msgstr "Tên bucket R2 (chỉ chữ thường, số và dấu gạch ngang)."
+
+msgid "Connection Test"
+msgstr "Kiểm tra kết nối"
+
+msgid "Test Connection"
+msgstr "Thử kết nối"
+
+msgid "Verify R2 credentials by testing connection."
+msgstr "Xác minh thông tin R2 bằng cách thử kết nối."
+
+msgid "Save Settings"
+msgstr "Lưu cài đặt"
+
+msgid "CDN"
+msgstr "CDN"
+
+msgid "CDN Configuration"
+msgstr "Cấu hình CDN"
+
+msgid "Configure CDN URL rewriting and image optimization settings."
+msgstr "Cấu hình viết lại URL CDN và cài đặt tối ưu hình ảnh."
+
+msgid "CDN URL"
+msgstr "URL CDN"
+
+msgid "Public Domain"
+msgstr "Domain công khai"
+
+msgid "Public URL for R2 bucket. Required for CDN Worker deployment."
+msgstr "URL công khai cho bucket R2. Bắt buộc để triển khai CDN Worker."
+
+msgid "Use R2.dev subdomain (e.g., https://pub-xxx.r2.dev) or custom domain."
+msgstr "Dùng subdomain R2.dev (ví dụ: https://pub-xxx.r2.dev) hoặc domain tùy chỉnh."
+
+msgid "Enable CDN (Auto Avif/WebP & Optimization)"
+msgstr "Bật CDN (Tự động Avif/WebP & Tối ưu)"
+
+msgid "Replace media URLs with CDN URLs for optimized delivery."
+msgstr "Thay thế URL media bằng URL CDN để phân phối tối ưu."
+
+msgid "Worker Deployment"
+msgstr "Triển khai Worker"
+
+msgid "Deploy Cloudflare Worker for image transformation."
+msgstr "Triển khai Cloudflare Worker để chuyển đổi hình ảnh."
+
+msgid "Cloudflare API Token"
+msgstr "API Token Cloudflare"
+
+msgid "Create at: Cloudflare Dashboard → My Profile → API Tokens"
+msgstr "Tạo tại: Cloudflare Dashboard → My Profile → API Tokens"
+
+msgid "Required permissions: Workers Scripts, Workers R2, Zone, Zone Settings, DNS, Workers Routes, Cache Purge"
+msgstr "Quyền cần thiết: Workers Scripts, Workers R2, Zone, Zone Settings, DNS, Workers Routes, Cache Purge"
+
+msgid "API Token is required for Worker deployment and cache purging."
+msgstr "API Token cần thiết để triển khai Worker và xóa cache."
+
+msgid "Option A: Use R2 Custom Domain (Recommended)"
+msgstr "Tùy chọn A: Dùng R2 Custom Domain (Khuyến nghị)"
+
+msgid "Option B: Use Worker Route"
+msgstr "Tùy chọn B: Dùng Worker Route"
+
+msgid "Enter your desired CDN URL (e.g., https://cdn.yourdomain.com)"
+msgstr "Nhập URL CDN mong muốn (ví dụ: https://cdn.yourdomain.com)"
+
+msgid "Your custom domain pointing to the Worker. DNS record will be created automatically if not exists."
+msgstr "Domain tùy chỉnh trỏ đến Worker. Bản ghi DNS sẽ được tạo tự động nếu chưa có."
+
+msgid "What happens when you validate:"
+msgstr "Điều gì xảy ra khi xác thực:"
+
+msgid "If DNS record does not exist → Creates A record with proxy enabled"
+msgstr "Nếu bản ghi DNS không tồn tại → Tạo bản ghi A với proxy đã bật"
+
+msgid "If DNS record exists but proxy disabled → Shows warning with fix button"
+msgstr "Nếu bản ghi DNS tồn tại nhưng proxy tắt → Hiển thị cảnh báo với nút sửa"
+
+msgid "If DNS record exists with proxy → Ready to deploy!"
+msgstr "Nếu bản ghi DNS tồn tại với proxy → Sẵn sàng triển khai!"
+
+msgid "Requirements:"
+msgstr "Yêu cầu:"
+
+msgid "API Token with Zone (Read), DNS (Edit) permissions"
+msgstr "API Token với quyền Zone (Read), DNS (Edit)"
+
+msgid "Domain must be in your Cloudflare account"
+msgstr "Domain phải nằm trong tài khoản Cloudflare của bạn"
+
+msgid "Validate DNS"
+msgstr "Xác thực DNS"
+
+msgid "Click \"Validate DNS\" to check/create the DNS record automatically"
+msgstr "Nhấn \"Xác thực DNS\" để kiểm tra/tạo bản ghi DNS tự động"
+
+msgid "Click \"Deploy Worker\" to deploy and configure routes"
+msgstr "Nhấn \"Triển khai Worker\" để triển khai và cấu hình routes"
+
+msgid "How does automatic DNS setup work?"
+msgstr "Cài đặt DNS tự động hoạt động như thế nào?"
+
+msgid "Cloudflare will automatically create DNS record"
+msgstr "Cloudflare sẽ tự động tạo bản ghi DNS"
+
+msgid "Current:"
+msgstr "Hiện tại:"
+
+msgid "Automatic Setup (Recommended)"
+msgstr "Cài đặt tự động (Khuyến nghị)"
+
+msgid "Enter subdomain (e.g., <code>cdn.yourdomain.com</code>)"
+msgstr "Nhập subdomain (ví dụ: <code>cdn.yourdomain.com</code>)"
+
+msgid "Add DNS record: CNAME <code>cdn</code> to your Worker"
+msgstr "Thêm bản ghi DNS: CNAME <code>cdn</code> đến Worker"
+
+msgid "Configure Worker route"
+msgstr "Cấu hình Worker route"
+
+msgid "Bind R2 to Worker"
+msgstr "Liên kết R2 với Worker"
+
+msgid "Create Worker route: <code>cdn.yourdomain.com/*</code>"
+msgstr "Tạo Worker route: <code>cdn.yourdomain.com/*</code>"
+
+msgid "Deploy Worker"
+msgstr "Triển khai Worker"
+
+msgid "Remove Worker"
+msgstr "Gỡ Worker"
+
+msgid "Image Format"
+msgstr "Định dạng hình ảnh"
+
+msgid "Original"
+msgstr "Gốc"
+
+msgid "Keep original format (JPEG, PNG, GIF). No conversion, maximum compatibility. Larger file sizes."
+msgstr "Giữ định dạng gốc (JPEG, PNG, GIF). Không chuyển đổi, tương thích tối đa. Kích thước tệp lớn hơn."
+
+msgid "WebP (Recommended)"
+msgstr "WebP (Khuyến nghị)"
+
+msgid "25-35% smaller than JPEG. Supported by 97%+ browsers. Best balance of compression and compatibility."
+msgstr "Nhỏ hơn 25-35% so với JPEG. Được hỗ trợ bởi 97%+ trình duyệt. Cân bằng tốt nhất giữa nén và tương thích."
+
+msgid "AVIF"
+msgstr "AVIF"
+
+msgid "50% smaller than JPEG. Best compression. Supported by 93%+ browsers. Falls back to WebP for older browsers."
+msgstr "Nhỏ hơn 50% so với JPEG. Nén tốt nhất. Được hỗ trợ bởi 93%+ trình duyệt. Quay về WebP cho trình duyệt cũ."
+
+msgid "Enable AVIF"
+msgstr "Bật AVIF"
+
+msgid "Serve AVIF format for supported browsers. Better compression than WebP."
+msgstr "Phục vụ định dạng AVIF cho trình duyệt hỗ trợ. Nén tốt hơn WebP."
+
+msgid "Image Quality"
+msgstr "Chất lượng hình ảnh"
+
+msgid "Quality"
+msgstr "Chất lượng"
+
+msgid "1-100. Higher = better quality, larger files. Default: 85"
+msgstr "1-100. Cao hơn = chất lượng tốt hơn, tệp lớn hơn. Mặc định: 85"
+
+msgid "1-100 (default 85). Lower = smaller file, less quality."
+msgstr "1-100 (mặc định 85). Thấp hơn = tệp nhỏ hơn, chất lượng kém hơn."
+
+msgid "Smart Sizes"
+msgstr "Kích thước thông minh"
+
+msgid "Auto-calculate responsive sizes. Increases Transformations usage."
+msgstr "Tự động tính kích thước responsive. Tăng sử dụng Transformations."
+
+msgid "Calculate optimal sizes attribute based on content width. Reduces bandwidth on mobile but increases Cloudflare Transformations cost."
+msgstr "Tính thuộc tính sizes tối ưu dựa trên chiều rộng nội dung. Giảm băng thông trên di động nhưng tăng chi phí Cloudflare Transformations."
+
+msgid "Content Max Width"
+msgstr "Chiều rộng nội dung tối đa"
+
+msgid "Maximum content area width in your theme. Used to calculate optimal image sizes."
+msgstr "Chiều rộng vùng nội dung tối đa trong theme. Dùng để tính kích thước hình ảnh tối ưu."
+
+msgid "Offload Settings"
+msgstr "Cài đặt Offload"
+
+msgid "Configure how media files are offloaded to R2 storage."
+msgstr "Cấu hình cách chuyển tệp media lên lưu trữ R2."
+
+msgid "Auto-Offload on Upload"
+msgstr "Tự động chuyển khi tải lên"
+
+msgid "Automatically offload media files to R2 when uploaded."
+msgstr "Tự động chuyển tệp media lên R2 khi tải lên."
+
+msgid "Keep Local Files"
+msgstr "Giữ tệp cục bộ"
+
+msgid "Keep local copies of files after offloading to R2. Disable to save disk space (files will be served from R2/CDN)."
+msgstr "Giữ bản sao cục bộ sau khi chuyển lên R2. Tắt để tiết kiệm dung lượng (tệp sẽ được phục vụ từ R2/CDN)."
+
+msgid "Sync Delete"
+msgstr "Đồng bộ xóa"
+
+msgid "When deleting media from WordPress, also delete from R2 storage. Disable to keep R2 copies as backup."
+msgstr "Khi xóa media từ WordPress, cũng xóa từ lưu trữ R2. Tắt để giữ bản sao R2 làm backup."
+
+msgid "Bulk Actions"
+msgstr "Thao tác hàng loạt"
+
+msgid "Manage bulk offload operations and monitor progress."
+msgstr "Quản lý thao tác chuyển hàng loạt và theo dõi tiến trình."
+
+msgid "Media Overview"
+msgstr "Tổng quan Media"
+
+msgid "Local / R2"
+msgstr "Cục bộ / R2"
+
+msgid "R2"
+msgstr "R2"
+
+msgid "Pending Queue"
+msgstr "Hàng đợi"
+
+msgid "Failed Items"
+msgstr "Mục thất bại"
+
+msgid "R2 Offload Terminal"
+msgstr "Terminal Offload R2"
+
+msgid "Loading..."
+msgstr "Đang tải..."
+
+msgid "Actions"
+msgstr "Thao tác"
+
+msgid "Batch Size"
+msgstr "Kích thước batch"
+
+msgid "10 files per batch"
+msgstr "10 tệp mỗi batch"
+
+msgid "25 files per batch"
+msgstr "25 tệp mỗi batch"
+
+msgid "50 files per batch"
+msgstr "50 tệp mỗi batch"
+
+msgid "Number of files to process in each batch during bulk offload."
+msgstr "Số tệp xử lý mỗi batch khi chuyển hàng loạt."
+
+msgid "Offload All (%d)"
+msgstr "Chuyển tất cả (%d)"
+
+msgid "Restore All (%d)"
+msgstr "Khôi phục toàn bộ (%d)"
+
+msgid "Free Disk Space (%d)"
+msgstr "Dọn dẹp ổ đĩa (%d)"
+
+msgid "Retry Failed (%d)"
+msgstr "Thử lại thất bại (%d)"
+
+msgid "Cancel"
+msgstr "Hủy"
+
+msgid "Clear"
+msgstr "Xóa"
+
+msgid "Process Log"
+msgstr "Nhật ký xử lý"
+
+msgid "Ready. Click \"Offload All Media\" to start."
+msgstr "Sẵn sàng. Nhấn \"Chuyển tất cả Media\" để bắt đầu."
+
+msgid "System Info"
+msgstr "Thông tin hệ thống"
+
+msgid "System Information"
+msgstr "Thông tin hệ thống"
+
+msgid "System status and debug information for troubleshooting."
+msgstr "Trạng thái hệ thống và thông tin debug để khắc phục sự cố."
+
+msgid "Copy to Clipboard"
+msgstr "Sao chép vào clipboard"
+
+msgid "Copy this information when requesting support."
+msgstr "Sao chép thông tin này khi yêu cầu hỗ trợ."
+
+msgid "Debug Information"
+msgstr "Thông tin Debug"
+
+msgid "Plugin Version"
+msgstr "Phiên bản Plugin"
+
+msgid "WordPress Version"
+msgstr "Phiên bản WordPress"
+
+msgid "PHP Version"
+msgstr "Phiên bản PHP"
+
+msgid "PHP Memory Limit"
+msgstr "Giới hạn bộ nhớ PHP"
+
+msgid "Max Execution Time"
+msgstr "Thời gian thực thi tối đa"
+
+msgid "Unlimited"
+msgstr "Không giới hạn"
+
+msgid "cURL Extension"
+msgstr "Extension cURL"
+
+msgid "OpenSSL Extension"
+msgstr "Extension OpenSSL"
+
+msgid "R2 Status"
+msgstr "Trạng thái R2"
+
+msgid "Get Support"
+msgstr "Nhận hỗ trợ"
+
+msgid "Offloaded to R2"
+msgstr "Đã chuyển lên R2"
+
+msgid "Queued for offload"
+msgstr "Đang trong hàng đợi"
+
+msgid "Offload to R2"
+msgstr "Chuyển lên R2"
+
+msgid "Re-offload"
+msgstr "Chuyển lại"
+
+msgid "Restore to Local"
+msgstr "Khôi phục về cục bộ"
+
+msgid "Delete Local"
+msgstr "Xóa cục bộ"
+
+msgid "Download to Local"
+msgstr "Tải về cục bộ"
+
+msgid "Not available"
+msgstr "Không khả dụng"
+
+msgid "Offloaded successfully"
+msgstr "Đã chuyển thành công"
+
+msgid "R2 credentials not configured."
+msgstr "Chưa cấu hình thông tin R2."
+
+msgid "Could not determine file path"
+msgstr "Không thể xác định đường dẫn tệp"
+
+msgid "File not found"
+msgstr "Không tìm thấy tệp"
+
+msgid "File exceeds 70MB limit"
+msgstr "Tệp vượt quá giới hạn 70MB"
+
+msgid "Offload blocked by filter (cfr2_should_offload)"
+msgstr "Chuyển bị chặn bởi filter (cfr2_should_offload)"
+
+msgid "Attachment is not offloaded to R2"
+msgstr "Tệp đính kèm chưa được chuyển lên R2"
+
+msgid "No R2 key found"
+msgstr "Không tìm thấy key R2"
+
+msgid "Restored to local"
+msgstr "Đã khôi phục về cục bộ"
+
+msgid "No local files found to delete"
+msgstr "Không tìm thấy tệp cục bộ để xóa"
+
+msgid "No local files to delete"
+msgstr "Không có tệp cục bộ để xóa"
+
+msgid "Local files deleted (+%d thumbnails)"
+msgstr "Đã xóa tệp cục bộ (+%d thumbnails)"
+
+msgid "Files already exist locally"
+msgstr "Tệp đã tồn tại cục bộ"
+
+msgid "Missing file path or R2 key"
+msgstr "Thiếu đường dẫn tệp hoặc key R2"
+
+msgid "Failed to download main file: %s"
+msgstr "Không thể tải tệp chính: %s"
+
+msgid "Files restored to local (+%d thumbnails)"
+msgstr "Đã khôi phục tệp về cục bộ (+%d thumbnails)"
+
+msgid "Security check failed."
+msgstr "Kiểm tra bảo mật thất bại."
+
+msgid "Permission denied."
+msgstr "Không có quyền truy cập."
+
+msgid "No changes detected."
+msgstr "Không phát hiện thay đổi."
+
+msgid "Too many attempts. Wait 60 seconds."
+msgstr "Quá nhiều lần thử. Đợi 60 giây."
+
+msgid "CDN URL is required."
+msgstr "Cần URL CDN."
+
+msgid "Invalid CDN URL"
+msgstr "URL CDN không hợp lệ"
+
+msgid "Settings saved."
+msgstr "Đã lưu cài đặt."
+
+msgid "Failed to save settings. Please try again."
+msgstr "Không thể lưu cài đặt. Vui lòng thử lại."
+
+msgid "Connection successful!"
+msgstr "Kết nối thành công!"
+
+msgid "Connection successful"
+msgstr "Kết nối thành công"
+
+msgid "Too many requests. Please try again later."
+msgstr "Quá nhiều yêu cầu. Vui lòng thử lại sau."
+
+msgid "Invalid attachment ID."
+msgstr "ID tệp đính kèm không hợp lệ."
+
+msgid "%1$d files queued for %2$s."
+msgstr "%1$d tệp đã được thêm vào hàng đợi để %2$s."
+
+msgid "Offload"
+msgstr "Chuyển"
+
+msgid "Bulk offload cancelled."
+msgstr "Đã hủy chuyển hàng loạt."
+
+msgid "Operation failed"
+msgstr "Thao tác thất bại"
+
+msgid "An error occurred during the operation."
+msgstr "Đã xảy ra lỗi trong quá trình thao tác."
+
+msgid "Progress"
+msgstr "Tiến trình"
+
+msgid "Elapsed Time:"
+msgstr "Thời gian đã qua:"
+
+msgid "Completed"
+msgstr "Hoàn thành"
+
+msgid "Unknown action"
+msgstr "Thao tác không xác định"
+
+msgid "File offloaded to R2 successfully."
+msgstr "Đã chuyển tệp lên R2 thành công."
+
+msgid "Offload failed."
+msgstr "Chuyển thất bại."
+
+msgid "File downloaded to local storage. Website continues serving from R2."
+msgstr "Đã tải tệp về lưu trữ cục bộ. Website tiếp tục phục vụ từ R2."
+
+msgid "Local file not found"
+msgstr "Không tìm thấy tệp cục bộ"
+
+msgid "Local files deleted successfully. Files remain on R2."
+msgstr "Đã xóa tệp cục bộ thành công. Tệp vẫn còn trên R2."
+
+msgid "Offloaded successfully!"
+msgstr "Đã chuyển thành công!"
+
+msgid "Unknown error"
+msgstr "Lỗi không xác định"
+
+msgid "An error occurred. Please try again."
+msgstr "Đã xảy ra lỗi. Vui lòng thử lại."
+
+msgid "Invalid item ID."
+msgstr "ID mục không hợp lệ."
+
+msgid "Could not cancel item. It may already be processing."
+msgstr "Không thể hủy mục. Có thể đang được xử lý."
+
+msgid "Item cancelled."
+msgstr "Đã hủy mục."
+
+msgid "Failed to queue item."
+msgstr "Không thể thêm mục vào hàng đợi."
+
+msgid "Item queued for retry."
+msgstr "Đã thêm mục vào hàng đợi để thử lại."
+
+msgid "%d pending items cancelled."
+msgstr "Đã hủy %d mục đang chờ."
+
+msgid "%d items queued for retry."
+msgstr "Đã thêm %d mục vào hàng đợi để thử lại."
+
+msgid "Activity log cleared."
+msgstr "Đã xóa nhật ký hoạt động."
+
+msgid "Please configure Cloudflare API Token first."
+msgstr "Vui lòng cấu hình API Token Cloudflare trước."
+
+msgid "R2 Bucket name is required. Please configure it in the Storage tab first."
+msgstr "Cần tên Bucket R2. Vui lòng cấu hình trong tab Lưu trữ trước."
+
+msgid "Worker deployed successfully!"
+msgstr "Đã triển khai Worker thành công!"
+
+msgid "Failed to upload Worker script: %s"
+msgstr "Không thể tải lên script Worker: %s"
+
+msgid "Failed to configure route"
+msgstr "Không thể cấu hình route"
+
+msgid "Worker removed."
+msgstr "Đã gỡ Worker."
+
+msgid "Worker deployed successfully"
+msgstr "Đã triển khai Worker thành công"
+
+msgid "Missing Cloudflare API Token or Account ID."
+msgstr "Thiếu API Token hoặc Account ID Cloudflare."
+
+msgid "Invalid API token"
+msgstr "API token không hợp lệ"
+
+msgid "Domain \"%s\" not found in your Cloudflare account"
+msgstr "Không tìm thấy domain \"%s\" trong tài khoản Cloudflare của bạn"
+
+msgid "Zone not found for domain: %s"
+msgstr "Không tìm thấy zone cho domain: %s"
+
+msgid "DNS record created for %s with Cloudflare proxy enabled."
+msgstr "Đã tạo bản ghi DNS cho %s với proxy Cloudflare đã bật."
+
+msgid "DNS record exists but Cloudflare proxy is DISABLED. Worker will NOT work without proxy."
+msgstr "Bản ghi DNS tồn tại nhưng proxy Cloudflare CHƯA BẬT. Worker sẽ KHÔNG hoạt động nếu không có proxy."
+
+msgid "Failed to create DNS record"
+msgstr "Không thể tạo bản ghi DNS"
+
+msgid "Missing zone or record ID."
+msgstr "Thiếu zone hoặc record ID."
+
+msgid "Proxy enabled successfully!"
+msgstr "Đã bật proxy thành công!"
+
+msgid "Failed to enable proxy."
+msgstr "Không thể bật proxy."
+
+msgid "Are you sure?"
+msgstr "Bạn có chắc không?"
+
+msgid "Delete local files? This cannot be undone. Files will remain on R2."
+msgstr "Xóa tệp cục bộ? Không thể hoàn tác. Tệp vẫn còn trên R2."
+
+msgid "Close"
+msgstr "Đóng"
+
+msgid "Retry All"
+msgstr "Thử lại tất cả"
+
+msgid "Clear All"
+msgstr "Xóa tất cả"
+
+msgid "Saving..."
+msgstr "Đang lưu..."
+
+msgid "MIME type \"%s\" is not allowed for offload"
+msgstr "Loại MIME \"%s\" không được phép chuyển"
+
+msgid "Deleted %d file(s) from R2"
+msgstr "Đã xóa %d tệp từ R2"
+
+msgid "Deleted local files (+%d thumbnails)"
+msgstr "Đã xóa tệp cục bộ (+%d thumbnails)"
+
+msgid "Missing %s"
+msgstr "Thiếu %s"
+
+msgid "This plugin requires PHP 7.4 or higher."
+msgstr "Plugin này yêu cầu PHP 7.4 trở lên."
+
+msgid "This plugin requires WordPress 6.0 or higher."
+msgstr "Plugin này yêu cầu WordPress 6.0 trở lên."
+
+msgid "List zones/domains"
+msgstr "Liệt kê zones/domains"
+
+msgid "Create/edit DNS records"
+msgstr "Tạo/sửa bản ghi DNS"
+
+msgid "Set <strong>Account Resources</strong>: Include your account"
+msgstr "Đặt <strong>Account Resources</strong>: Bao gồm tài khoản của bạn"
+
+msgid "Set <strong>Zone Resources</strong>: Include your domain"
+msgstr "Đặt <strong>Zone Resources</strong>: Bao gồm domain của bạn"
+
+msgid "Zone Resources must include your domain"
+msgstr "Zone Resources phải bao gồm domain của bạn"
+
+msgid "by"
+msgstr "bởi"
+
+msgid "You do not have permission to access this page."
+msgstr "Bạn không có quyền truy cập trang này."
+
+msgid "You need a custom domain to serve images via CDN with image transformations."
+msgstr "Bạn cần domain tùy chỉnh để phục vụ hình ảnh qua CDN với chuyển đổi hình ảnh."
+
+msgid "Offload WordPress media to Cloudflare R2 storage and serve via CDN with automatic image optimization (WebP/AVIF, resize, quality)."
+msgstr "Chuyển media WordPress lên lưu trữ Cloudflare R2 và phục vụ qua CDN với tối ưu hình ảnh tự động (WebP/AVIF, thay đổi kích thước, chất lượng)."
+
+msgid "Go to Bulk Actions"
+msgstr "Đi đến Thao tác hàng loạt"

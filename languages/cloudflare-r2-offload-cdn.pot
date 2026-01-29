@@ -1,0 +1,1177 @@
+# Copyright (C) 2026 ThachPham
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: CloudFlare R2 Offload & CDN 1.0.0\n"
+"Report-Msgid-Bugs-To: https://thachpham.com/contact\n"
+"POT-Creation-Date: 2026-01-29T11:26:00+07:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: src/Admin/AdminMenu.php
+msgid "CloudFlare R2 Offload & CDN"
+msgstr ""
+
+#: src/Admin/AdminMenu.php
+msgid "CloudFlare R2 Offload & CDN Settings"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Dashboard"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Setup Guides"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "1. Create R2 Bucket"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "2. Create Cloudflare API Token"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "3. Configure CDN URL"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "4. Offload Media to R2"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "5. Image Optimization Settings"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Log in to <a href=\"https://dash.cloudflare.com\" target=\"_blank\">Cloudflare Dashboard</a>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Go to <strong>R2 Object Storage</strong> in the left sidebar"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Click <strong>Create bucket</strong>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Enter bucket name (e.g., <code>my-wp-media</code>) and select location"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Click <strong>Create bucket</strong> to finish"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Your Account ID is shown at the top right of the R2 page."
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "In R2 page, click <strong>Manage R2 API Tokens</strong>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Click <strong>Create API token</strong>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Set permissions: <strong>Object Read & Write</strong>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Specify bucket (or all buckets)"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Click <strong>Create Token</strong>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Copy <strong>Access Key ID</strong> and <strong>Secret Access Key</strong>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "In R2 bucket settings, go to <strong>Settings</strong> tab"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "How to enable public access →"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Enter the CDN URL in the CDN tab (e.g., https://cdn.yourdomain.com)"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Automatic Offload:"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Enable <strong>Auto Offload</strong> in Offload tab"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "New uploads will be automatically offloaded to R2"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Manual Offload:"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "In Media Library, click <strong>Offload to R2</strong> for individual items"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Or use attachment edit page for single file offload"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Bulk Offload Existing Media:"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Go to <strong>Bulk Actions</strong> tab"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Set batch size (25-50 recommended)"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Click <strong>Start Bulk Offload</strong>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Wait for completion (you can cancel anytime)"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Configure image optimization in the <strong>CDN</strong> tab:"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Deploy Worker first (see step 4)"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Cost Information:"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "R2 Storage: $0.015/GB/month"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "R2 Class A Operations (write): $4.50/million"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "R2 Class B Operations (read): $0.36/million"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Image Transformations: First 5,000/month free, then $0.50/1,000"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Monitor usage in Worker Statistics above and Cloudflare Dashboard."
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Quick Stats"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Total Media"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Local"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Offloaded"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Pending"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Worker Statistics"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Requests This Month"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "View detailed analytics in your <a href=\"%s\" target=\"_blank\" rel=\"noopener\">Cloudflare Dashboard</a>"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Deploy the Worker to see analytics."
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "System Status"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "R2 Credentials"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Configured"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Not configured"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "CDN Status"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Enabled"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Disabled"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Worker Status"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Deployed"
+msgstr ""
+
+#: src/Admin/Pages/DashboardPage.php
+msgid "Not deployed"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Storage"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "R2 Storage Configuration"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Configure your Cloudflare R2 storage credentials. Get these from Cloudflare Dashboard > R2 > Manage R2 API Tokens."
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Get R2 API Credentials:"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Go to <a href=\"https://dash.cloudflare.com/profile/api-tokens\" target=\"_blank\">API Tokens</a> page"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Select <strong>Create Custom Token</strong>"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Add the following permissions:"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Permission"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Access"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Purpose"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Click <strong>Continue to summary</strong> > <strong>Create Token</strong>"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Copy the token (shown only once!)"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Account ID"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Your Cloudflare account ID (alphanumeric)."
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Access Key ID"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "R2 Access Key ID from API token."
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Secret Access Key"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "R2 Secret Access Key (encrypted in database). Leave blank to keep existing value."
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Bucket Name"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "R2 bucket name (lowercase alphanumeric and hyphens only)."
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Connection Test"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Test Connection"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Verify R2 credentials by testing connection."
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Save Settings"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "CDN"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "CDN Configuration"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Configure CDN URL rewriting and image optimization settings."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "CDN URL"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Public Domain"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Public URL for R2 bucket. Required for CDN Worker deployment."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Use R2.dev subdomain (e.g., https://pub-xxx.r2.dev) or custom domain."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Enable CDN (Auto Avif/WebP & Optimization)"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Replace media URLs with CDN URLs for optimized delivery."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Worker Deployment"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Deploy Cloudflare Worker for image transformation."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Cloudflare API Token"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Create at: Cloudflare Dashboard → My Profile → API Tokens"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Required permissions: Workers Scripts, Workers R2, Zone, Zone Settings, DNS, Workers Routes, Cache Purge"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "API Token is required for Worker deployment and cache purging."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Option A: Use R2 Custom Domain (Recommended)"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Option B: Use Worker Route"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Enter your desired CDN URL (e.g., https://cdn.yourdomain.com)"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Your custom domain pointing to the Worker. DNS record will be created automatically if not exists."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "What happens when you validate:"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "If DNS record does not exist → Creates A record with proxy enabled"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "If DNS record exists but proxy disabled → Shows warning with fix button"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "If DNS record exists with proxy → Ready to deploy!"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Requirements:"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "API Token with Zone (Read), DNS (Edit) permissions"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Domain must be in your Cloudflare account"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Validate DNS"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Click \"Validate DNS\" to check/create the DNS record automatically"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Click \"Deploy Worker\" to deploy and configure routes"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "How does automatic DNS setup work?"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Cloudflare will automatically create DNS record"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Current:"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Automatic Setup (Recommended)"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Enter subdomain (e.g., <code>cdn.yourdomain.com</code>)"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Add DNS record: CNAME <code>cdn</code> to your Worker"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Configure Worker route"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Bind R2 to Worker"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Create Worker route: <code>cdn.yourdomain.com/*</code>"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Deploy Worker"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Remove Worker"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Image Format"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Original"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Keep original format (JPEG, PNG, GIF). No conversion, maximum compatibility. Larger file sizes."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "WebP (Recommended)"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "25-35% smaller than JPEG. Supported by 97%+ browsers. Best balance of compression and compatibility."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "AVIF"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "50% smaller than JPEG. Best compression. Supported by 93%+ browsers. Falls back to WebP for older browsers."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Enable AVIF"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Serve AVIF format for supported browsers. Better compression than WebP."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Image Quality"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Quality"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "1-100. Higher = better quality, larger files. Default: 85"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "1-100 (default 85). Lower = smaller file, less quality."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Smart Sizes"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Auto-calculate responsive sizes. Increases Transformations usage."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Calculate optimal sizes attribute based on content width. Reduces bandwidth on mobile but increases Cloudflare Transformations cost."
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Content Max Width"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "Maximum content area width in your theme. Used to calculate optimal image sizes."
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "Offload Settings"
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "Configure how media files are offloaded to R2 storage."
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "Auto-Offload on Upload"
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "Automatically offload media files to R2 when uploaded."
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "Keep Local Files"
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "Keep local copies of files after offloading to R2. Disable to save disk space (files will be served from R2/CDN)."
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "Sync Delete"
+msgstr ""
+
+#: src/Admin/Pages/OffloadPage.php
+msgid "When deleting media from WordPress, also delete from R2 storage. Disable to keep R2 copies as backup."
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Bulk Actions"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Manage bulk offload operations and monitor progress."
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Media Overview"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Local / R2"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "R2"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Pending Queue"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Failed Items"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "R2 Offload Terminal"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Loading..."
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Actions"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Batch Size"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "10 files per batch"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "25 files per batch"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "50 files per batch"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Number of files to process in each batch during bulk offload."
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Offload All (%d)"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Restore All (%d)"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Free Disk Space (%d)"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Retry Failed (%d)"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Cancel"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Clear"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Process Log"
+msgstr ""
+
+#: src/Admin/Pages/BulkActionsPage.php
+msgid "Ready. Click \"Offload All Media\" to start."
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "System Info"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "System Information"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "System status and debug information for troubleshooting."
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "Copy to Clipboard"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "Copy this information when requesting support."
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "Debug Information"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "Plugin Version"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "WordPress Version"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "PHP Version"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "PHP Memory Limit"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "Max Execution Time"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "Unlimited"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "cURL Extension"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "OpenSSL Extension"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "R2 Status"
+msgstr ""
+
+#: src/Admin/Pages/SystemInfoPage.php
+msgid "Get Support"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Offloaded to R2"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Queued for offload"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Offload to R2"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Re-offload"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Restore to Local"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Delete Local"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Download to Local"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "Not available"
+msgstr ""
+
+#: src/Services/OffloadService.php
+msgid "Offloaded successfully"
+msgstr ""
+
+#: src/Services/OffloadService.php
+msgid "R2 credentials not configured."
+msgstr ""
+
+#: src/Services/OffloadService.php
+msgid "Could not determine file path"
+msgstr ""
+
+#: src/Services/OffloadService.php
+msgid "File not found"
+msgstr ""
+
+#: src/Services/OffloadService.php
+msgid "File exceeds 70MB limit"
+msgstr ""
+
+#: src/Services/OffloadService.php
+msgid "Offload blocked by filter (cfr2_should_offload)"
+msgstr ""
+
+#: src/Services/RestoreService.php
+msgid "Attachment is not offloaded to R2"
+msgstr ""
+
+#: src/Services/RestoreService.php
+msgid "No R2 key found"
+msgstr ""
+
+#: src/Services/RestoreService.php
+msgid "Restored to local"
+msgstr ""
+
+#: src/Services/DeleteLocalService.php
+msgid "No local files found to delete"
+msgstr ""
+
+#: src/Services/DeleteLocalService.php
+msgid "No local files to delete"
+msgstr ""
+
+#: src/Services/DeleteLocalService.php
+msgid "Local files deleted (+%d thumbnails)"
+msgstr ""
+
+#: src/Services/DownloadService.php
+msgid "Files already exist locally"
+msgstr ""
+
+#: src/Services/DownloadService.php
+msgid "Missing file path or R2 key"
+msgstr ""
+
+#: src/Services/DownloadService.php
+msgid "Failed to download main file: %s"
+msgstr ""
+
+#: src/Services/DownloadService.php
+msgid "Files restored to local (+%d thumbnails)"
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "Security check failed."
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "Permission denied."
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "No changes detected."
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "Too many attempts. Wait 60 seconds."
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "CDN URL is required."
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "Invalid CDN URL"
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "Settings saved."
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "Failed to save settings. Please try again."
+msgstr ""
+
+#: src/Ajax/SettingsAjaxHandler.php
+msgid "Connection successful!"
+msgstr ""
+
+#: src/Ajax/ConnectionTestAjaxHandler.php
+msgid "Connection successful"
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Too many requests. Please try again later."
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Invalid attachment ID."
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "%1$d files queued for %2$s."
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Offload"
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Bulk offload cancelled."
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Operation failed"
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "An error occurred during the operation."
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Progress"
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Elapsed Time:"
+msgstr ""
+
+#: src/Ajax/BulkActionsAjaxHandler.php
+msgid "Completed"
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "Unknown action"
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "File offloaded to R2 successfully."
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "Offload failed."
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "File downloaded to local storage. Website continues serving from R2."
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "Local file not found"
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "Local files deleted successfully. Files remain on R2."
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "Offloaded successfully!"
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "Unknown error"
+msgstr ""
+
+#: src/Ajax/MediaActionsAjaxHandler.php
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "Invalid item ID."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "Could not cancel item. It may already be processing."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "Item cancelled."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "Failed to queue item."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "Item queued for retry."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "%d pending items cancelled."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "%d items queued for retry."
+msgstr ""
+
+#: src/Ajax/QueueAjaxHandler.php
+msgid "Activity log cleared."
+msgstr ""
+
+#: src/Ajax/WorkerDeployAjaxHandler.php
+msgid "Please configure Cloudflare API Token first."
+msgstr ""
+
+#: src/Ajax/WorkerDeployAjaxHandler.php
+msgid "R2 Bucket name is required. Please configure it in the Storage tab first."
+msgstr ""
+
+#: src/Ajax/WorkerDeployAjaxHandler.php
+msgid "Worker deployed successfully!"
+msgstr ""
+
+#: src/Ajax/WorkerDeployAjaxHandler.php
+msgid "Failed to upload Worker script: %s"
+msgstr ""
+
+#: src/Ajax/WorkerDeployAjaxHandler.php
+msgid "Failed to configure route"
+msgstr ""
+
+#: src/Ajax/WorkerDeployAjaxHandler.php
+msgid "Worker removed."
+msgstr ""
+
+#: src/Ajax/WorkerDeployAjaxHandler.php
+msgid "Worker deployed successfully"
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Missing Cloudflare API Token or Account ID."
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Invalid API token"
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Domain \"%s\" not found in your Cloudflare account"
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Zone not found for domain: %s"
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "DNS record created for %s with Cloudflare proxy enabled."
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "DNS record exists but Cloudflare proxy is DISABLED. Worker will NOT work without proxy."
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Failed to create DNS record"
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Missing zone or record ID."
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Proxy enabled successfully!"
+msgstr ""
+
+#: src/Ajax/DNSAjaxHandler.php
+msgid "Failed to enable proxy."
+msgstr ""
+
+#: src/Admin/DeactivationHandler.php
+msgid "Are you sure?"
+msgstr ""
+
+#: src/Admin/DeactivationHandler.php
+msgid "Delete local files? This cannot be undone. Files will remain on R2."
+msgstr ""
+
+#: src/Admin/DeactivationHandler.php
+msgid "Close"
+msgstr ""
+
+#: src/Admin/DeactivationHandler.php
+msgid "Retry All"
+msgstr ""
+
+#: src/Admin/DeactivationHandler.php
+msgid "Clear All"
+msgstr ""
+
+#: src/Admin/DeactivationHandler.php
+msgid "Saving..."
+msgstr ""
+
+#: src/Services/ValidationService.php
+msgid "MIME type \"%s\" is not allowed for offload"
+msgstr ""
+
+#: src/Services/DeleteService.php
+msgid "Deleted %d file(s) from R2"
+msgstr ""
+
+#: src/Services/DeleteService.php
+msgid "Deleted local files (+%d thumbnails)"
+msgstr ""
+
+#: src/Ajax/StorageSettingsAjaxHandler.php
+msgid "Missing %s"
+msgstr ""
+
+#: src/Requirements.php
+msgid "This plugin requires PHP 7.4 or higher."
+msgstr ""
+
+#: src/Requirements.php
+msgid "This plugin requires WordPress 6.0 or higher."
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "List zones/domains"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Create/edit DNS records"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Set <strong>Account Resources</strong>: Include your account"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Set <strong>Zone Resources</strong>: Include your domain"
+msgstr ""
+
+#: src/Admin/Pages/StoragePage.php
+msgid "Zone Resources must include your domain"
+msgstr ""
+
+#: src/Admin/Pages/CDNPage.php
+msgid "by"
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: src/Admin/MediaLibraryExtension.php
+msgid "You need a custom domain to serve images via CDN with image transformations."
+msgstr ""
+
+#: src/Admin/Tabs/DashboardTab.php
+msgid "Offload WordPress media to Cloudflare R2 storage and serve via CDN with automatic image optimization (WebP/AVIF, resize, quality)."
+msgstr ""
+
+#: src/Admin/Tabs/DashboardTab.php
+msgid "Go to Bulk Actions"
+msgstr ""

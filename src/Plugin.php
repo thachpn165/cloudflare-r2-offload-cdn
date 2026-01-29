@@ -47,9 +47,23 @@ class Plugin {
 	}
 
 	/**
+	 * Load plugin text domain for translations.
+	 */
+	public function load_textdomain(): void {
+		load_plugin_textdomain(
+			'cloudflare-r2-offload-cdn',
+			false,
+			dirname( CFR2_BASENAME ) . '/languages/'
+		);
+	}
+
+	/**
 	 * Define all hooks.
 	 */
 	private function define_hooks(): void {
+		// Load text domain for translations (priority 0 for early loading).
+		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
+
 		// Admin hooks.
 		if ( is_admin() ) {
 			$admin_menu = new AdminMenu();
