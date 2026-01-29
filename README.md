@@ -13,8 +13,6 @@ A production-ready WordPress plugin for offloading media to Cloudflare R2 with a
 
 - WordPress 6.0+
 - PHP 8.0+
-- Composer
-- Node.js 18+
 
 ## Features (v1.0.0)
 
@@ -60,6 +58,8 @@ A production-ready WordPress plugin for offloading media to Cloudflare R2 with a
 6. **Bulk Offload**: Use Bulk Actions tab to migrate existing media
 
 ## Development
+
+> **Note:** Requires Composer and Node.js 18+ for building from source.
 
 ### Build Commands
 
