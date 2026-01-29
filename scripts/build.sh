@@ -11,7 +11,7 @@ PLUGIN_SLUG="cloudflare-r2-offload-cdn"
 PLUGIN_VERSION=$(grep -m1 "Version:" ${PLUGIN_SLUG}.php 2>/dev/null | sed 's/.*Version:[[:space:]]*//' | tr -d ' ' || echo "1.0.0")
 BUILD_DIR="dist"
 SVN_DIR="svn"
-ZIP_FILE="${PLUGIN_SLUG}-${PLUGIN_VERSION}.zip"
+ZIP_FILE="cf-r2-offload-cdn-${PLUGIN_VERSION}.zip"
 
 # Colors
 RED='\033[0;31m'
