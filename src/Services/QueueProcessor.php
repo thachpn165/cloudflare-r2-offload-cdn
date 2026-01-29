@@ -81,10 +81,10 @@ class QueueProcessor {
 
 			// Process based on action.
 			$result = match ( $item->action ) {
-				'offload' => $offload->offload( $item->attachment_id ),
-				'restore' => $offload->restore( $item->attachment_id ),
-				'delete'  => self::delete_from_r2( $r2, $item->attachment_id ),
-				default   => array(
+				'offload'      => $offload->offload( $item->attachment_id ),
+				'restore'      => $offload->restore( $item->attachment_id ),
+				'delete_local' => $offload->delete_local_files( $item->attachment_id ),
+				default        => array(
 					'success' => false,
 					'message' => __( 'Unknown action', 'cloudflare-r2-offload-cdn' ),
 				),

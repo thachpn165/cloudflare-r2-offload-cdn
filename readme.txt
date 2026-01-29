@@ -27,6 +27,7 @@ Offload WordPress media to Cloudflare R2 storage and serve via CDN with automati
 * **WooCommerce Support** - Full integration with product images and galleries
 * **Background Processing** - Queue-based processing with WP Cron (Action Scheduler supported)
 * **Media Library Integration** - Status column, bulk actions, and row actions
+* **WP-CLI Support** - Command line interface for bulk operations and automation
 
 = Requirements =
 
@@ -95,6 +96,39 @@ Offload WordPress media to Cloudflare R2 storage and serve via CDN with automati
 2. Use "Bulk Actions" tab to offload existing media
 3. Monitor progress in the terminal-style activity log
 
+= WP-CLI Commands =
+
+The plugin provides WP-CLI commands for automation and bulk operations:
+
+`wp cfr2 status`
+Show offload statistics (total, offloaded, not offloaded, disk saveable, pending).
+
+`wp cfr2 offload <id|all> [--dry-run] [--batch-size=50]`
+Offload media to R2. Use specific ID or "all" for bulk offload.
+
+`wp cfr2 restore <id|all> [--dry-run] [--batch-size=50]`
+Restore media from R2 (removes R2 metadata, reverts to local URLs).
+
+`wp cfr2 free-space <id|all> [--dry-run] [--batch-size=50]`
+Delete local files for offloaded media to free disk space.
+
+**Examples:**
+
+    # Check current offload status
+    wp cfr2 status
+
+    # Offload single attachment
+    wp cfr2 offload 123
+
+    # Offload all media with larger batch size
+    wp cfr2 offload all --batch-size=100
+
+    # Preview what would be offloaded (dry run)
+    wp cfr2 offload all --dry-run
+
+    # Free disk space by removing local copies
+    wp cfr2 free-space all
+
 == Frequently Asked Questions ==
 
 = What is Cloudflare R2? =
@@ -133,6 +167,10 @@ The plugin supports WebP (recommended) and AVIF conversion. Original format is p
 
 Currently designed for single-site installations. Multisite support is planned for future releases.
 
+= Does it support WP-CLI? =
+
+Yes! The plugin includes WP-CLI commands for bulk operations: `wp cfr2 status`, `wp cfr2 offload`, `wp cfr2 restore`, and `wp cfr2 free-space`. All commands support `--dry-run` and `--batch-size` options.
+
 == Screenshots ==
 
 1. Dashboard with setup guides and statistics
@@ -156,6 +194,7 @@ Currently designed for single-site installations. Multisite support is planned f
 * Background queue processing
 * Rate limiting and security features
 * Dashboard with usage statistics
+* WP-CLI commands (status, offload, restore, free-space)
 
 == Upgrade Notice ==
 

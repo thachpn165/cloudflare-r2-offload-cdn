@@ -19,7 +19,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Plugin constants.
-define( 'CFR2_VERSION', '1.0.1' );
+define( 'CFR2_VERSION', '1.0.0' );
 define( 'CFR2_FILE', __FILE__ );
 define( 'CFR2_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CFR2_URL', plugin_dir_url( __FILE__ ) );
@@ -41,3 +41,8 @@ add_action(
 // Activation/Deactivation hooks.
 register_activation_hook( __FILE__, array( \ThachPN165\CFR2OffLoad\Core\Activator::class, 'activate' ) );
 register_deactivation_hook( __FILE__, array( \ThachPN165\CFR2OffLoad\Core\Deactivator::class, 'deactivate' ) );
+
+// Register WP-CLI commands.
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	WP_CLI::add_command( 'cfr2', \ThachPN165\CFR2OffLoad\CLI\Commands::class );
+}

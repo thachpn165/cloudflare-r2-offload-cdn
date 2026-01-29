@@ -48,8 +48,8 @@ class Schema {
 		$sql_queue = "CREATE TABLE {$wpdb->prefix}cfr2_offload_queue (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			attachment_id BIGINT UNSIGNED NOT NULL,
-			action ENUM('offload', 'restore', 'delete') NOT NULL,
-			status ENUM('pending', 'processing', 'completed', 'failed') DEFAULT 'pending',
+			action ENUM('offload', 'restore', 'delete_local') NOT NULL,
+			status ENUM('pending', 'processing', 'completed', 'failed', 'cancelled') DEFAULT 'pending',
 			error_message TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			processed_at DATETIME,
