@@ -167,6 +167,7 @@ class BulkItemProcessor {
 			case QueueAction::DELETE_LOCAL:
 				if ( ! empty( $result['deleted_main'] ) ) {
 					return sprintf(
+						/* translators: %d: number of deleted thumbnail files */
 						__( 'Deleted local files (+%d thumbnails)', 'cloudflare-r2-offload-cdn' ),
 						$result['deleted_thumbs'] ?? 0
 					);

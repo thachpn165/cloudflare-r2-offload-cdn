@@ -125,8 +125,7 @@ class MediaLibraryExtension implements HookableInterface {
 
 		$ids_placeholder = implode( ',', array_map( 'absint', $attachment_ids ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Batch optimization query.
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IDs are sanitized with absint.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Batch optimization query, IDs sanitized with absint.
 		$pending_ids = $wpdb->get_col(
 			"SELECT DISTINCT attachment_id FROM {$wpdb->prefix}cfr2_offload_queue
 			 WHERE attachment_id IN ({$ids_placeholder})

@@ -103,7 +103,7 @@ class AdminMenu implements HookableInterface {
 		?>
 		<style>
 			#adminmenu .toplevel_page_cloudflare-r2-offload-cdn .wp-menu-image {
-				background-image: url('data:image/png;base64,<?php echo $icon_base64; ?>') !important;
+				background-image: url('data:image/png;base64,<?php echo esc_attr( $icon_base64 ); ?>') !important;
 				background-repeat: no-repeat !important;
 				background-position: center center !important;
 				background-size: 20px 20px !important;

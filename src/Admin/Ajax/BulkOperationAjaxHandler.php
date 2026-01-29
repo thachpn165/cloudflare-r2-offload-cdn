@@ -84,13 +84,13 @@ class BulkOperationAjaxHandler {
 		$this->verify_manage_options();
 		$this->queue_manager->clear_old_items();
 
-		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 		$attachments = get_posts(
 			array(
 				'post_type'      => 'attachment',
 				'post_status'    => 'inherit',
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required to find non-offloaded attachments.
 				'meta_query'     => array(
 					array(
 						'key'     => MetaKeys::OFFLOADED,
