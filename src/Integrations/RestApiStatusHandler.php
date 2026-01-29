@@ -11,19 +11,21 @@ defined( 'ABSPATH' ) || exit;
 
 use WP_REST_Request;
 use WP_REST_Response;
+use ThachPN165\CFR2OffLoad\Constants\MetaKeys;
+use ThachPN165\CFR2OffLoad\Services\SettingsService;
 
 /**
- * RestApiStatusHandler class - handles status and stats endpoints.
+ * RestApiStatusHandler class - handles read-only status endpoints.
  */
 class RestApiStatusHandler {
 
 	/**
-	 * Get offload status for attachment.
+	 * Get attachment info with URLs.
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public static function get_status( WP_REST_Request $request ): WP_REST_Response {
+	public static function get_attachment( WP_REST_Request $request ): WP_REST_Response {
 		$attachment_id = (int) $request->get_param( 'id' );
 
 		// Verify attachment exists.
@@ -34,31 +36,53 @@ class RestApiStatusHandler {
 			);
 		}
 
-		$is_offloaded = (bool) get_post_meta( $attachment_id, '_cfr2_offloaded', true );
-		$r2_url       = get_post_meta( $attachment_id, '_cfr2_r2_url', true );
-		$r2_key       = get_post_meta( $attachment_id, '_cfr2_r2_key', true );
-		$local_url    = get_post_meta( $attachment_id, '_cfr2_local_url', true );
+		$is_offloaded  = (bool) get_post_meta( $attachment_id, MetaKeys::OFFLOADED, true );
+		$r2_url        = get_post_meta( $attachment_id, MetaKeys::R2_URL, true );
+		$local_deleted = (bool) get_post_meta( $attachment_id, MetaKeys::LOCAL_DELETED, true );
 
-		// Check queue status.
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Queue status requires fresh data.
-		$queue_status = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT status FROM {$wpdb->prefix}cfr2_offload_queue
-				 WHERE attachment_id = %d
-				 ORDER BY created_at DESC LIMIT 1",
-				$attachment_id
-			)
-		);
+		// Get local URL.
+		$local_url = null;
+		if ( ! $local_deleted ) {
+			$local_url = wp_get_attachment_url( $attachment_id );
+		}
+
+		// Build CDN URL if enabled.
+		$cdn_url  = null;
+		$settings = SettingsService::get_settings();
+		if ( $is_offloaded && ! empty( $settings['cdn_enabled'] ) && ! empty( $settings['cdn_url'] ) ) {
+			$cdn_url = $r2_url ? str_replace(
+				$settings['r2_public_domain'] ?? '',
+				rtrim( $settings['cdn_url'], '/' ),
+				$r2_url
+			) : null;
+		}
+
+		// Get attachment metadata.
+		$metadata  = wp_get_attachment_metadata( $attachment_id );
+		$file_size = null;
+		$mime_type = get_post_mime_type( $attachment_id );
+
+		if ( ! $local_deleted ) {
+			$file_path = get_attached_file( $attachment_id );
+			if ( $file_path && file_exists( $file_path ) ) {
+				$file_size = filesize( $file_path );
+			}
+		}
 
 		return new WP_REST_Response(
 			array(
-				'id'           => $attachment_id,
-				'offloaded'    => $is_offloaded,
-				'r2_url'       => $r2_url ?: null,
-				'r2_key'       => $r2_key ?: null,
-				'local_url'    => $local_url ?: wp_get_attachment_url( $attachment_id ),
-				'queue_status' => $queue_status,
+				'id'          => $attachment_id,
+				'offloaded'   => $is_offloaded,
+				'urls'        => array(
+					'local' => $local_url,
+					'r2'    => $r2_url ?: null,
+					'cdn'   => $cdn_url,
+				),
+				'local_exists' => ! $local_deleted,
+				'mime_type'    => $mime_type,
+				'file_size'    => $file_size,
+				'width'        => $metadata['width'] ?? null,
+				'height'       => $metadata['height'] ?? null,
 			)
 		);
 	}
@@ -75,12 +99,15 @@ class RestApiStatusHandler {
 		$daily_stats   = \ThachPN165\CFR2OffLoad\Services\StatsTracker::get_daily_stats( $days );
 		$current_month = \ThachPN165\CFR2OffLoad\Services\StatsTracker::get_current_month_transformations();
 
-		// Get offload counts.
+		// Get offload counts from status table.
 		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregating postmeta for stats.
-		$offloaded = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->postmeta}
-			 WHERE meta_key = '_cfr2_offloaded' AND meta_value = '1'"
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregating stats requires fresh data.
+		$counts = $wpdb->get_row(
+			"SELECT
+				COUNT(*) as total,
+				SUM(CASE WHEN local_exists = 1 THEN 1 ELSE 0 END) as with_local,
+				SUM(CASE WHEN local_exists = 0 THEN 1 ELSE 0 END) as r2_only
+			FROM {$wpdb->prefix}cfr2_offload_status"
 		);
 
 		return new WP_REST_Response(
@@ -90,7 +117,9 @@ class RestApiStatusHandler {
 					'daily'         => $daily_stats,
 				),
 				'offload'         => array(
-					'total_offloaded' => $offloaded,
+					'total_offloaded' => (int) ( $counts->total ?? 0 ),
+					'with_local'      => (int) ( $counts->with_local ?? 0 ),
+					'r2_only'         => (int) ( $counts->r2_only ?? 0 ),
 				),
 			)
 		);

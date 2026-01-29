@@ -89,13 +89,29 @@ wp cfr2 status          # Show offload statistics
 wp cfr2 free-space      # Delete local files for offloaded media
 ```
 
-## REST API
+## REST API (Read-Only)
 
 ```bash
-GET  /wp-json/cfr2/v1/status/{id}     # Get attachment status
-POST /wp-json/cfr2/v1/offload/{id}    # Trigger offload
-GET  /wp-json/cfr2/v1/stats           # Get usage stats
-POST /wp-json/cfr2/v1/bulk-offload    # Bulk offload (body: {"ids": [1,2,3]})
+GET /wp-json/cfr2/v1/attachment/{id}  # Get attachment URLs (local, R2, CDN)
+GET /wp-json/cfr2/v1/stats            # Get usage stats (requires auth)
+```
+
+**Example Response** (`/attachment/123`):
+```json
+{
+  "id": 123,
+  "offloaded": true,
+  "urls": {
+    "local": "https://example.com/wp-content/uploads/2024/01/image.jpg",
+    "r2": "https://bucket.r2.dev/uploads/2024/01/image.jpg",
+    "cdn": "https://cdn.example.com/uploads/2024/01/image.jpg"
+  },
+  "local_exists": true,
+  "mime_type": "image/jpeg",
+  "file_size": 102400,
+  "width": 1920,
+  "height": 1080
+}
 ```
 
 ## Project Structure

@@ -2,6 +2,8 @@
 /**
  * REST API Integration class.
  *
+ * Provides read-only REST API endpoints for querying attachment status.
+ *
  * @package CFR2OffLoad
  */
 
@@ -32,14 +34,14 @@ class RestApiIntegration implements HookableInterface {
 	 * Register REST routes.
 	 */
 	public function register_routes(): void {
-		// Get attachment offload status.
+		// Get attachment offload status and URLs.
 		register_rest_route(
 			self::NAMESPACE,
-			'/status/(?P<id>\d+)',
+			'/attachment/(?P<id>\d+)',
 			array(
 				'methods'             => 'GET',
-				'callback'            => array( RestApiStatusHandler::class, 'get_status' ),
-				'permission_callback' => array( RestApiHelper::class, 'check_read_permission' ),
+				'callback'            => array( RestApiStatusHandler::class, 'get_attachment' ),
+				'permission_callback' => '__return_true',
 				'args'                => array(
 					'id' => array(
 						'required'          => true,
@@ -49,28 +51,7 @@ class RestApiIntegration implements HookableInterface {
 			)
 		);
 
-		// Trigger offload for attachment.
-		register_rest_route(
-			self::NAMESPACE,
-			'/offload/(?P<id>\d+)',
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( RestApiOffloadHandler::class, 'trigger_offload' ),
-				'permission_callback' => array( RestApiHelper::class, 'check_write_permission' ),
-				'args'                => array(
-					'id'    => array(
-						'required'          => true,
-						'validate_callback' => array( RestApiHelper::class, 'validate_attachment_id' ),
-					),
-					'force' => array(
-						'default'           => false,
-						'sanitize_callback' => 'rest_sanitize_boolean',
-					),
-				),
-			)
-		);
-
-		// Get usage stats.
+		// Get plugin statistics (requires authentication).
 		register_rest_route(
 			self::NAMESPACE,
 			'/stats',
@@ -82,24 +63,6 @@ class RestApiIntegration implements HookableInterface {
 					'period' => array(
 						'default' => 'month',
 						'enum'    => array( 'week', 'month' ),
-					),
-				),
-			)
-		);
-
-		// Bulk offload.
-		register_rest_route(
-			self::NAMESPACE,
-			'/bulk-offload',
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( RestApiOffloadHandler::class, 'bulk_offload' ),
-				'permission_callback' => array( RestApiHelper::class, 'check_admin_permission' ),
-				'args'                => array(
-					'ids' => array(
-						'required' => true,
-						'type'     => 'array',
-						'items'    => array( 'type' => 'integer' ),
 					),
 				),
 			)
