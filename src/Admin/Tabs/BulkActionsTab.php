@@ -78,14 +78,44 @@ class BulkActionsTab {
 					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $offloaded_count ) ); ?></span>
 					<span class="cfr2-stat-label"><?php esc_html_e( 'Offloaded', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
-				<div class="cfr2-stat">
+				<div class="cfr2-stat <?php echo $pending_count > 0 ? 'cfr2-stat-clickable' : ''; ?>" <?php echo $pending_count > 0 ? 'id="cfr2-pending-stat"' : ''; ?>>
 					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $pending_count ) ); ?></span>
-					<span class="cfr2-stat-label"><?php esc_html_e( 'Pending', 'cloudflare-r2-offload-cdn' ); ?></span>
+					<span class="cfr2-stat-label">
+						<?php esc_html_e( 'Pending', 'cloudflare-r2-offload-cdn' ); ?>
+						<?php if ( $pending_count > 0 ) : ?>
+							<span class="dashicons dashicons-visibility" style="font-size: 14px; vertical-align: middle;"></span>
+						<?php endif; ?>
+					</span>
 				</div>
 				<div class="cfr2-stat">
 					<span class="cfr2-stat-value"><?php echo esc_html( number_format_i18n( $local_count ) ); ?></span>
 					<span class="cfr2-stat-label"><?php esc_html_e( 'Local', 'cloudflare-r2-offload-cdn' ); ?></span>
 				</div>
+			</div>
+		</div>
+		<?php
+		self::render_pending_items_section();
+	}
+
+	/**
+	 * Render pending items section (hidden by default).
+	 */
+	private static function render_pending_items_section(): void {
+		?>
+		<div id="cfr2-pending-section" class="settings-section" style="display: none;">
+			<div class="cfr2-section-header">
+				<h3><?php esc_html_e( 'Pending Queue', 'cloudflare-r2-offload-cdn' ); ?></h3>
+				<div>
+					<button type="button" id="cfr2-clear-pending" class="button button-secondary button-small" style="color: #d63638;">
+						<?php esc_html_e( 'Clear All', 'cloudflare-r2-offload-cdn' ); ?>
+					</button>
+					<button type="button" id="cfr2-close-pending" class="button button-small">
+						<?php esc_html_e( 'Close', 'cloudflare-r2-offload-cdn' ); ?>
+					</button>
+				</div>
+			</div>
+			<div id="cfr2-pending-list" class="cfr2-pending-list">
+				<p class="cfr2-loading"><?php esc_html_e( 'Loading...', 'cloudflare-r2-offload-cdn' ); ?></p>
 			</div>
 		</div>
 		<?php

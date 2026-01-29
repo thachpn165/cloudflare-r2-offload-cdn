@@ -15,6 +15,13 @@ defined( 'ABSPATH' ) || exit;
 class EncryptionService {
 
 	/**
+	 * Singleton instance.
+	 *
+	 * @var EncryptionService|null
+	 */
+	private static ?EncryptionService $instance = null;
+
+	/**
 	 * Encryption method.
 	 */
 	private const METHOD = 'AES-256-CBC';
@@ -30,6 +37,25 @@ class EncryptionService {
 	private const HMAC_LENGTH = 32;
 
 	/**
+	 * Private constructor for singleton pattern.
+	 */
+	private function __construct() {
+		// Private constructor.
+	}
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @return EncryptionService Singleton instance.
+	 */
+	public static function get_instance(): EncryptionService {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
 	 * Encrypt a string using AES-256-CBC with HMAC authentication.
 	 *
 	 * @param string $plaintext Plain text to encrypt.
@@ -40,31 +66,26 @@ class EncryptionService {
 			return '';
 		}
 
-		// Fallback for invalid AUTH_KEY.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		if ( ! $this->is_auth_key_valid() ) {
-			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			return base64_encode( $plaintext );
 		}
 
 		$iv_length = openssl_cipher_iv_length( self::METHOD );
-
 		if ( false === $iv_length ) {
 			return '';
 		}
 
 		$iv = openssl_random_pseudo_bytes( $iv_length, $crypto_strong );
-
 		if ( false === $iv || ! $crypto_strong ) {
 			return '';
 		}
 
 		$encrypted = openssl_encrypt( $plaintext, self::METHOD, AUTH_KEY, 0, $iv );
-
 		if ( false === $encrypted ) {
 			return '';
 		}
 
-		// Add HMAC for authenticated encryption.
 		$hmac = hash_hmac( self::HMAC_ALGO, $encrypted, AUTH_KEY, true );
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode

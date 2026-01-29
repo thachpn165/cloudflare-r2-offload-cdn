@@ -27,7 +27,7 @@ trait CredentialsHelperTrait {
 			$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
 		}
 
-		$encryption = new EncryptionService();
+		$encryption = EncryptionService::get_instance();
 
 		return array(
 			'account_id'        => $settings['r2_account_id'] ?? '',
@@ -35,5 +35,21 @@ trait CredentialsHelperTrait {
 			'secret_access_key' => $encryption->decrypt( $settings['r2_secret_access_key'] ?? '' ),
 			'bucket'            => $settings['r2_bucket'] ?? '',
 		);
+	}
+
+	/**
+	 * Get decrypted Cloudflare API token.
+	 *
+	 * @param array|null $settings Optional settings array.
+	 * @return string Decrypted API token or empty string.
+	 */
+	protected static function get_cf_api_token( ?array $settings = null ): string {
+		if ( null === $settings ) {
+			$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+		}
+
+		$encryption = EncryptionService::get_instance();
+
+		return $encryption->decrypt( $settings['cf_api_token'] ?? '' );
 	}
 }
