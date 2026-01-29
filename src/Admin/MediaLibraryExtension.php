@@ -182,11 +182,20 @@ class MediaLibraryExtension implements HookableInterface {
 			return;
 		}
 
-		$is_offloaded = get_post_meta( $post_id, '_cfr2_offloaded', true );
-		$is_pending   = $this->is_pending( $post_id );
+		$is_offloaded  = get_post_meta( $post_id, '_cfr2_offloaded', true );
+		$is_pending    = $this->is_pending( $post_id );
+		$file_path     = get_attached_file( $post_id );
+		$local_exists  = $file_path && file_exists( $file_path );
 
-		if ( $is_offloaded ) {
-			echo '<span class="cfr2-status cfr2-offloaded" title="' . esc_attr__( 'Offloaded to R2', 'cloudflare-r2-offload-cdn' ) . '">';
+		if ( $is_offloaded && $local_exists ) {
+			// Both local and R2.
+			echo '<span class="cfr2-status cfr2-both" title="' . esc_attr__( 'Stored locally and on R2', 'cloudflare-r2-offload-cdn' ) . '">';
+			echo '<span class="dashicons dashicons-admin-site"></span><span class="dashicons dashicons-cloud"></span> ';
+			echo esc_html__( 'Local / R2', 'cloudflare-r2-offload-cdn' );
+			echo '</span>';
+		} elseif ( $is_offloaded ) {
+			// R2 only.
+			echo '<span class="cfr2-status cfr2-offloaded" title="' . esc_attr__( 'Offloaded to R2 (no local file)', 'cloudflare-r2-offload-cdn' ) . '">';
 			echo '<span class="dashicons dashicons-cloud"></span> ' . esc_html__( 'R2', 'cloudflare-r2-offload-cdn' );
 			echo '</span>';
 		} elseif ( $is_pending ) {
@@ -194,6 +203,7 @@ class MediaLibraryExtension implements HookableInterface {
 			echo '<span class="dashicons dashicons-clock"></span> ' . esc_html__( 'Pending', 'cloudflare-r2-offload-cdn' );
 			echo '</span>';
 		} else {
+			// Local only.
 			echo '<span class="cfr2-status cfr2-local" title="' . esc_attr__( 'Stored locally', 'cloudflare-r2-offload-cdn' ) . '">';
 			echo '<span class="dashicons dashicons-admin-site"></span> ' . esc_html__( 'Local', 'cloudflare-r2-offload-cdn' );
 			echo '</span>';
@@ -214,30 +224,36 @@ class MediaLibraryExtension implements HookableInterface {
 
 		$is_offloaded = get_post_meta( $post->ID, '_cfr2_offloaded', true );
 		$nonce        = wp_create_nonce( 'cfr2_media_action_' . $post->ID );
+		$file_path    = get_attached_file( $post->ID );
+		$local_exists = $file_path && file_exists( $file_path );
 
 		if ( $is_offloaded ) {
-			$actions['cfr2_restore'] = sprintf(
-				'<a href="%s" class="cfr2-restore">%s</a>',
-				esc_url( admin_url( "admin-ajax.php?action=cfr2_restore_single&id={$post->ID}&nonce={$nonce}" ) ),
-				esc_html__( 'Restore to Local', 'cloudflare-r2-offload-cdn' )
-			);
-			$actions['cfr2_reoffload'] = sprintf(
-				'<a href="%s" class="cfr2-reoffload">%s</a>',
-				esc_url( admin_url( "admin-ajax.php?action=cfr2_offload_single&id={$post->ID}&nonce={$nonce}&force=1" ) ),
-				esc_html__( 'Re-offload', 'cloudflare-r2-offload-cdn' )
-			);
-
-			// Add "Delete Local" action only if local file exists.
-			$file_path = get_attached_file( $post->ID );
-			if ( $file_path && file_exists( $file_path ) ) {
+			// Offloaded to R2.
+			if ( $local_exists ) {
+				// Local + R2: Show Delete Local to free space.
 				$actions['cfr2_delete_local'] = sprintf(
 					'<a href="%s" class="cfr2-delete-local" style="color: #d63638;" onclick="return confirm(\'%s\');">%s</a>',
 					esc_url( admin_url( "admin-ajax.php?action=cfr2_delete_local_single&id={$post->ID}&nonce={$nonce}" ) ),
 					esc_js( __( 'Delete local files? This cannot be undone. Files will remain on R2.', 'cloudflare-r2-offload-cdn' ) ),
 					esc_html__( 'Delete Local', 'cloudflare-r2-offload-cdn' )
 				);
+			} else {
+				// R2 only: Show Restore to download from R2.
+				$actions['cfr2_restore'] = sprintf(
+					'<a href="%s" class="cfr2-restore">%s</a>',
+					esc_url( admin_url( "admin-ajax.php?action=cfr2_restore_single&id={$post->ID}&nonce={$nonce}" ) ),
+					esc_html__( 'Download to Local', 'cloudflare-r2-offload-cdn' )
+				);
 			}
+
+			// Always show Re-offload option for offloaded files.
+			$actions['cfr2_reoffload'] = sprintf(
+				'<a href="%s" class="cfr2-reoffload">%s</a>',
+				esc_url( admin_url( "admin-ajax.php?action=cfr2_offload_single&id={$post->ID}&nonce={$nonce}&force=1" ) ),
+				esc_html__( 'Re-offload', 'cloudflare-r2-offload-cdn' )
+			);
 		} else {
+			// Not offloaded: Show Offload action.
 			$actions['cfr2_offload'] = sprintf(
 				'<a href="%s" class="cfr2-offload">%s</a>',
 				esc_url( admin_url( "admin-ajax.php?action=cfr2_offload_single&id={$post->ID}&nonce={$nonce}" ) ),
@@ -336,7 +352,7 @@ class MediaLibraryExtension implements HookableInterface {
 		if ( isset( $_GET['cfr2_restored'] ) ) {
 			printf(
 				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
-				esc_html__( 'File restored to local storage.', 'cloudflare-r2-offload-cdn' )
+				esc_html__( 'File downloaded to local storage. Website continues serving from R2.', 'cloudflare-r2-offload-cdn' )
 			);
 		}
 
@@ -477,18 +493,37 @@ class MediaLibraryExtension implements HookableInterface {
 		$r2_url       = get_post_meta( $post->ID, '_cfr2_r2_url', true );
 		$thumbnails   = get_post_meta( $post->ID, '_cfr2_thumbnails', true );
 		$is_pending   = $this->is_pending( $post->ID );
+		$file_path    = get_attached_file( $post->ID );
+		$local_exists = $file_path && file_exists( $file_path );
 
 		// Build status HTML.
-		if ( $is_offloaded ) {
+		if ( $is_offloaded && $local_exists ) {
+			// Both local and R2.
 			$thumb_count = is_array( $thumbnails ) ? count( $thumbnails ) : 0;
 
-			$status_html = '<span style="color: #46b450; font-weight: bold;">';
+			$status_html = '<span style="color: #2271b1; font-weight: bold;">';
+			$status_html .= '<span class="dashicons dashicons-admin-site" style="vertical-align: middle;"></span>';
 			$status_html .= '<span class="dashicons dashicons-cloud" style="vertical-align: middle;"></span> ';
-			$status_html .= esc_html__( 'Offloaded to R2', 'cloudflare-r2-offload-cdn' );
+			$status_html .= esc_html__( 'Local / R2', 'cloudflare-r2-offload-cdn' );
 			if ( $thumb_count > 0 ) {
 				$status_html .= sprintf( ' (+%d %s)', $thumb_count, _n( 'thumbnail', 'thumbnails', $thumb_count, 'cloudflare-r2-offload-cdn' ) );
 			}
 			$status_html .= '</span>';
+			if ( $r2_url ) {
+				$status_html .= '<br><small style="color: #666;">' . esc_html( $r2_url ) . '</small>';
+			}
+		} elseif ( $is_offloaded ) {
+			// R2 only (no local file).
+			$thumb_count = is_array( $thumbnails ) ? count( $thumbnails ) : 0;
+
+			$status_html = '<span style="color: #46b450; font-weight: bold;">';
+			$status_html .= '<span class="dashicons dashicons-cloud" style="vertical-align: middle;"></span> ';
+			$status_html .= esc_html__( 'R2', 'cloudflare-r2-offload-cdn' );
+			if ( $thumb_count > 0 ) {
+				$status_html .= sprintf( ' (+%d %s)', $thumb_count, _n( 'thumbnail', 'thumbnails', $thumb_count, 'cloudflare-r2-offload-cdn' ) );
+			}
+			$status_html .= '</span>';
+			$status_html .= '<br><small style="color: #999;">' . esc_html__( 'No local file', 'cloudflare-r2-offload-cdn' ) . '</small>';
 			if ( $r2_url ) {
 				$status_html .= '<br><small style="color: #666;">' . esc_html( $r2_url ) . '</small>';
 			}
@@ -498,9 +533,10 @@ class MediaLibraryExtension implements HookableInterface {
 			$status_html .= esc_html__( 'Queued for offload', 'cloudflare-r2-offload-cdn' );
 			$status_html .= '</span>';
 		} else {
+			// Local only.
 			$status_html = '<span style="color: #999;">';
 			$status_html .= '<span class="dashicons dashicons-admin-site" style="vertical-align: middle;"></span> ';
-			$status_html .= esc_html__( 'Stored locally', 'cloudflare-r2-offload-cdn' );
+			$status_html .= esc_html__( 'Local', 'cloudflare-r2-offload-cdn' );
 			$status_html .= '</span>';
 
 			// Add offload button.

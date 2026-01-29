@@ -2,7 +2,8 @@
 /**
  * Uninstall script.
  *
- * Fired when the plugin is uninstalled.
+ * Fired when the plugin is deleted (not deactivated).
+ * Removes all plugin data: options, tables, post meta, transients.
  *
  * @package CFR2OffLoad
  */
@@ -10,28 +11,47 @@
 // Exit if not called by WordPress.
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-// Securely wipe sensitive data before deletion.
-$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
-if ( ! empty( $settings['api_key'] ) ) {
-	$settings['api_key'] = str_repeat( '0', strlen( $settings['api_key'] ) );
-	update_option( 'cloudflare_r2_offload_cdn_settings', $settings );
-}
-
-// Remove plugin options.
-delete_option( 'cloudflare_r2_offload_cdn_settings' );
-
-// Clean up all plugin transients.
 global $wpdb;
 
-// Delete rate limiting and cache transients.
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup requires direct query.
+// 1. Securely wipe sensitive data before deletion.
+$settings = get_option( 'cloudflare_r2_offload_cdn_settings', array() );
+if ( ! empty( $settings['r2_secret_access_key'] ) ) {
+	$settings['r2_secret_access_key'] = str_repeat( '0', strlen( $settings['r2_secret_access_key'] ) );
+}
+if ( ! empty( $settings['api_key'] ) ) {
+	$settings['api_key'] = str_repeat( '0', strlen( $settings['api_key'] ) );
+}
+update_option( 'cloudflare_r2_offload_cdn_settings', $settings );
+
+// 2. Remove plugin options.
+delete_option( 'cloudflare_r2_offload_cdn_settings' );
+delete_option( 'cfr2_db_version' );
+
+// 3. Drop custom database tables.
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}cfr2_offload_status" );
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}cfr2_offload_queue" );
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}cfr2_stats" );
+// phpcs:enable
+
+// 4. Remove all post meta created by this plugin.
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $wpdb->query(
 	$wpdb->prepare(
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-		$wpdb->esc_like( '_transient_cloudflare_r2_offload_cdn_' ) . '%',
-		$wpdb->esc_like( '_transient_timeout_cloudflare_r2_offload_cdn_' ) . '%'
+		"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
+		'_cfr2_%'
 	)
 );
 
-// Remove any user meta if needed (uncomment if using user meta).
-// delete_metadata( 'user', 0, 'cloudflare_r2_offload_cdn_user_meta', '', true );
+// 5. Clean up all plugin transients.
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+$wpdb->query(
+	$wpdb->prepare(
+		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+		$wpdb->esc_like( '_transient_cfr2_' ) . '%',
+		$wpdb->esc_like( '_transient_timeout_cfr2_' ) . '%'
+	)
+);
+
+// 6. Clear any scheduled cron events.
+wp_clear_scheduled_hook( 'cfr2_process_queue' );

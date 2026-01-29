@@ -28,7 +28,7 @@ class CdnTab {
 			<table class="form-table">
 				<tr>
 					<th scope="row">
-						<label for="cdn_enabled"><?php esc_html_e( 'Enable CDN URL Rewriting', 'cloudflare-r2-offload-cdn' ); ?></label>
+						<label for="cdn_enabled"><?php esc_html_e( 'Enable CDN (Auto Avif/WebP & Optimization)', 'cloudflare-r2-offload-cdn' ); ?></label>
 					</th>
 					<td>
 						<input type="hidden" name="cdn_enabled" value="0" />
@@ -44,6 +44,21 @@ class CdnTab {
 
 			<div class="cdn-fields" <?php echo empty( $settings['cdn_enabled'] ) ? 'style="display:none;"' : ''; ?>>
 				<table class="form-table">
+					<tr>
+						<th scope="row">
+							<label for="cf_api_token"><?php esc_html_e( 'Cloudflare API Token', 'cloudflare-r2-offload-cdn' ); ?></label>
+						</th>
+						<td>
+							<?php
+							$token_value = ! empty( $settings['cf_api_token'] ) ? '********' : '';
+							?>
+							<input type="password" id="cf_api_token" name="cf_api_token"
+								value="<?php echo esc_attr( $token_value ); ?>"
+								class="regular-text" autocomplete="new-password" />
+							<p class="description"><?php esc_html_e( 'Required permissions: Workers Scripts, Workers R2, Zone, Zone Settings, DNS, Workers Routes, Cache Purge', 'cloudflare-r2-offload-cdn' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Create at: Cloudflare Dashboard → My Profile → API Tokens', 'cloudflare-r2-offload-cdn' ); ?></p>
+						</td>
+					</tr>
 					<tr>
 						<th scope="row">
 							<label for="cdn_url"><?php esc_html_e( 'CDN URL', 'cloudflare-r2-offload-cdn' ); ?></label>
@@ -82,7 +97,8 @@ class CdnTab {
 									<p style="margin-top: 16px;"><strong><?php esc_html_e( 'Requirements:', 'cloudflare-r2-offload-cdn' ); ?></strong></p>
 									<ul>
 										<li><?php esc_html_e( 'Domain must be in your Cloudflare account', 'cloudflare-r2-offload-cdn' ); ?></li>
-										<li><?php esc_html_e( 'API Token must have Zone:Edit permission', 'cloudflare-r2-offload-cdn' ); ?></li>
+										<li><?php esc_html_e( 'API Token with Zone (Read), DNS (Edit) permissions', 'cloudflare-r2-offload-cdn' ); ?></li>
+										<li><?php esc_html_e( 'Zone Resources must include your domain', 'cloudflare-r2-offload-cdn' ); ?></li>
 									</ul>
 								</div>
 							</details>
@@ -153,26 +169,6 @@ class CdnTab {
 								value="<?php echo esc_attr( $settings['content_max_width'] ?? 800 ); ?>"
 								min="320" max="1920" step="10" class="small-text" /> px
 							<p class="description"><?php esc_html_e( 'Maximum content area width in your theme. Used to calculate optimal image sizes.', 'cloudflare-r2-offload-cdn' ); ?></p>
-						</td>
-					</tr>
-				</table>
-
-				<h3><?php esc_html_e( 'Cloudflare API Token', 'cloudflare-r2-offload-cdn' ); ?></h3>
-				<p class="description"><?php esc_html_e( 'Required for Worker deployment. Create at Cloudflare Dashboard > My Profile > API Tokens.', 'cloudflare-r2-offload-cdn' ); ?></p>
-
-				<table class="form-table">
-					<tr>
-						<th scope="row">
-							<label for="cf_api_token"><?php esc_html_e( 'API Token', 'cloudflare-r2-offload-cdn' ); ?></label>
-						</th>
-						<td>
-							<?php
-							$token_value = ! empty( $settings['cf_api_token'] ) ? '********' : '';
-							?>
-							<input type="password" id="cf_api_token" name="cf_api_token"
-								value="<?php echo esc_attr( $token_value ); ?>"
-								class="regular-text" autocomplete="new-password" />
-							<p class="description"><?php esc_html_e( 'Permissions needed: Workers Scripts (Edit), Zone (Read), Zone Settings (Edit)', 'cloudflare-r2-offload-cdn' ); ?></p>
 						</td>
 					</tr>
 				</table>

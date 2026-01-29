@@ -321,33 +321,106 @@ class OffloadService {
 	}
 
 	/**
-	 * Restore from R2 to local.
+	 * Restore from R2 to local (download files, keep R2 metadata).
+	 * Files are downloaded to local storage but website continues serving from R2.
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return array Result array with success/message.
 	 */
 	public function restore( int $attachment_id ): array {
+		// Verify attachment is offloaded.
+		if ( ! $this->is_offloaded( $attachment_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'Attachment is not offloaded to R2', 'cloudflare-r2-offload-cdn' ),
+			);
+		}
+
 		// Fire before restore hook.
 		ExtensibilityHooks::before_restore( $attachment_id );
 
-		// Clear offload meta.
-		delete_post_meta( $attachment_id, MetaKeys::OFFLOADED );
-		delete_post_meta( $attachment_id, MetaKeys::R2_URL );
-		delete_post_meta( $attachment_id, MetaKeys::R2_KEY );
+		$file_path = get_attached_file( $attachment_id );
+		$r2_key    = get_post_meta( $attachment_id, MetaKeys::R2_KEY, true );
 
-		// Remove from offload_status table.
+		if ( ! $file_path || ! $r2_key ) {
+			return array(
+				'success' => false,
+				'message' => __( 'Missing file path or R2 key', 'cloudflare-r2-offload-cdn' ),
+			);
+		}
+
+		$downloaded_main   = false;
+		$downloaded_thumbs = 0;
+
+		// Download main file if not exists locally.
+		if ( ! file_exists( $file_path ) ) {
+			$result = $this->r2->download_file( $r2_key, $file_path );
+			if ( ! $result['success'] ) {
+				return array(
+					'success' => false,
+					'message' => sprintf(
+						/* translators: %s: error message */
+						__( 'Failed to download main file: %s', 'cloudflare-r2-offload-cdn' ),
+						$result['message'] ?? 'Unknown error'
+					),
+				);
+			}
+			$downloaded_main = true;
+		}
+
+		// Download thumbnails.
+		$thumbnails = get_post_meta( $attachment_id, MetaKeys::THUMBNAILS, true );
+		if ( ! empty( $thumbnails ) && is_array( $thumbnails ) ) {
+			$base_dir   = dirname( $file_path );
+			$upload_dir = wp_upload_dir();
+
+			foreach ( $thumbnails as $size => $thumb_data ) {
+				if ( empty( $thumb_data['r2_key'] ) ) {
+					continue;
+				}
+
+				$thumb_path = $base_dir . '/' . basename( $thumb_data['r2_key'] );
+
+				// Skip if already exists locally.
+				if ( file_exists( $thumb_path ) ) {
+					continue;
+				}
+
+				$result = $this->r2->download_file( $thumb_data['r2_key'], $thumb_path );
+				if ( $result['success'] ) {
+					++$downloaded_thumbs;
+				}
+			}
+		}
+
+		// Update local_exists flag in database.
 		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table cleanup.
-		$wpdb->delete(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom status table.
+		$wpdb->update(
 			$wpdb->prefix . 'cfr2_offload_status',
+			array( 'local_exists' => 1 ),
 			array( 'attachment_id' => $attachment_id ),
+			array( '%d' ),
 			array( '%d' )
 		);
 
 		// Clear dashboard stats cache so stats update immediately.
 		delete_transient( TransientKeys::DASHBOARD_STATS );
 
-		$result = array( 'success' => true );
+		$message = $downloaded_main
+			? sprintf(
+				/* translators: %d: number of thumbnails downloaded */
+				__( 'Files restored to local (+%d thumbnails)', 'cloudflare-r2-offload-cdn' ),
+				$downloaded_thumbs
+			)
+			: __( 'Files already exist locally', 'cloudflare-r2-offload-cdn' );
+
+		$result = array(
+			'success'           => true,
+			'downloaded_main'   => $downloaded_main,
+			'downloaded_thumbs' => $downloaded_thumbs,
+			'message'           => $message,
+		);
 
 		// Fire after restore hook.
 		ExtensibilityHooks::after_restore( $attachment_id, $result );

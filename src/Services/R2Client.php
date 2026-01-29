@@ -207,6 +207,41 @@ class R2Client {
 	}
 
 	/**
+	 * Download file from R2 to local path.
+	 *
+	 * @param string $r2_key     R2 object key.
+	 * @param string $local_path Local destination path.
+	 * @return array Result array with success/message.
+	 */
+	public function download_file( string $r2_key, string $local_path ): array {
+		try {
+			// Ensure directory exists.
+			$dir = dirname( $local_path );
+			if ( ! file_exists( $dir ) ) {
+				wp_mkdir_p( $dir );
+			}
+
+			$this->get_client()->getObject(
+				array(
+					'Bucket' => $this->bucket,
+					'Key'    => $r2_key,
+					'SaveAs' => $local_path,
+				)
+			);
+
+			return array(
+				'success' => true,
+				'path'    => $local_path,
+			);
+		} catch ( AwsException $e ) {
+			return array(
+				'success' => false,
+				'message' => $e->getAwsErrorMessage() ?: $e->getMessage(),
+			);
+		}
+	}
+
+	/**
 	 * Build R2 URL for a given key.
 	 *
 	 * @param string $key R2 object key.

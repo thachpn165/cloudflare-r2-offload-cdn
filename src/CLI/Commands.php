@@ -143,7 +143,8 @@ class Commands {
 	}
 
 	/**
-	 * Restore media from R2 (remove R2 metadata).
+	 * Download files from R2 to local storage.
+	 * Files are downloaded but website continues serving from R2.
 	 *
 	 * ## OPTIONS
 	 *
@@ -298,7 +299,7 @@ class Commands {
 	}
 
 	/**
-	 * Restore single attachment.
+	 * Download single attachment from R2 to local.
 	 *
 	 * @param int  $id      Attachment ID.
 	 * @param bool $dry_run Dry run mode.
@@ -315,20 +316,20 @@ class Commands {
 		}
 
 		if ( $dry_run ) {
-			WP_CLI::log( "[DRY-RUN] Would restore: #{$id}" );
+			WP_CLI::log( "[DRY-RUN] Would download: #{$id}" );
 			return;
 		}
 
 		$result = $this->offload_service->restore( $id );
 		if ( $result['success'] ) {
-			WP_CLI::success( "Restored #{$id}." );
+			WP_CLI::success( "Downloaded #{$id}: " . ( $result['message'] ?? 'OK' ) );
 		} else {
-			WP_CLI::error( "Failed to restore #{$id}." );
+			WP_CLI::error( "Failed to download #{$id}: " . ( $result['message'] ?? 'Unknown error' ) );
 		}
 	}
 
 	/**
-	 * Restore all offloaded attachments.
+	 * Download all offloaded attachments from R2 to local.
 	 *
 	 * @param bool $dry_run    Dry run mode.
 	 * @param int  $batch_size Batch size.
@@ -337,7 +338,7 @@ class Commands {
 		$ids = $this->get_offloaded_ids();
 
 		if ( empty( $ids ) ) {
-			WP_CLI::success( 'No offloaded attachments to restore.' );
+			WP_CLI::success( 'No offloaded attachments to download.' );
 			return;
 		}
 
@@ -346,12 +347,12 @@ class Commands {
 		$failed  = 0;
 
 		if ( $dry_run ) {
-			WP_CLI::log( "[DRY-RUN] Would restore {$total} attachments." );
+			WP_CLI::log( "[DRY-RUN] Would download {$total} attachments." );
 			return;
 		}
 
-		WP_CLI::log( "Restoring {$total} attachments..." );
-		$progress = Utils\make_progress_bar( 'Restoring', $total );
+		WP_CLI::log( "Downloading {$total} attachments from R2..." );
+		$progress = Utils\make_progress_bar( 'Downloading', $total );
 
 		foreach ( array_chunk( $ids, $batch_size ) as $batch ) {
 			foreach ( $batch as $id ) {
@@ -366,7 +367,7 @@ class Commands {
 		}
 
 		$progress->finish();
-		WP_CLI::success( "Restored: {$success} success, {$failed} failed." );
+		WP_CLI::success( "Downloaded: {$success} success, {$failed} failed." );
 	}
 
 	/**

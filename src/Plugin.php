@@ -13,6 +13,7 @@ use ThachPN165\CFR2OffLoad\Traits\SingletonTrait;
 use ThachPN165\CFR2OffLoad\Core\Loader;
 use ThachPN165\CFR2OffLoad\Admin\AdminMenu;
 use ThachPN165\CFR2OffLoad\Admin\MediaLibraryExtension;
+use ThachPN165\CFR2OffLoad\Admin\DeactivationHandler;
 use ThachPN165\CFR2OffLoad\PublicSide\Assets;
 use ThachPN165\CFR2OffLoad\Database\Schema;
 use ThachPN165\CFR2OffLoad\Hooks\MediaUploadHooks;
@@ -56,6 +57,9 @@ class Plugin {
 
 			$media_lib = new MediaLibraryExtension();
 			$media_lib->register_hooks();
+
+			$deactivation = new DeactivationHandler();
+			$deactivation->register_hooks();
 		}
 
 		// Assets.

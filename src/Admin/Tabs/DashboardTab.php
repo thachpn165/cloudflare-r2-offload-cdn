@@ -277,6 +277,26 @@ class DashboardTab {
 							<td>' . __( 'Deploy Worker', 'cloudflare-r2-offload-cdn' ) . '</td>
 						</tr>
 						<tr>
+							<td><code>Account > Workers R2 Storage</code></td>
+							<td>Edit</td>
+							<td>' . __( 'Bind R2 to Worker', 'cloudflare-r2-offload-cdn' ) . '</td>
+						</tr>
+						<tr>
+							<td><code>Zone > Zone</code></td>
+							<td>Read</td>
+							<td>' . __( 'List zones/domains', 'cloudflare-r2-offload-cdn' ) . '</td>
+						</tr>
+						<tr>
+							<td><code>Zone > Zone Settings</code></td>
+							<td>Edit</td>
+							<td>' . __( 'Configure zone settings', 'cloudflare-r2-offload-cdn' ) . '</td>
+						</tr>
+						<tr>
+							<td><code>Zone > DNS</code></td>
+							<td>Edit</td>
+							<td>' . __( 'Create/edit DNS records', 'cloudflare-r2-offload-cdn' ) . '</td>
+						</tr>
+						<tr>
 							<td><code>Zone > Workers Routes</code></td>
 							<td>Edit</td>
 							<td>' . __( 'Configure Worker route', 'cloudflare-r2-offload-cdn' ) . '</td>
@@ -285,11 +305,6 @@ class DashboardTab {
 							<td><code>Zone > Cache Purge</code></td>
 							<td>Purge</td>
 							<td>' . __( 'Clear CDN cache', 'cloudflare-r2-offload-cdn' ) . '</td>
-						</tr>
-						<tr>
-							<td><code>Account > Workers R2 Storage</code></td>
-							<td>Edit</td>
-							<td>' . __( 'Bind R2 to Worker', 'cloudflare-r2-offload-cdn' ) . '</td>
 						</tr>
 					</tbody>
 				</table>
