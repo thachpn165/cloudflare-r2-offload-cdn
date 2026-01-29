@@ -91,7 +91,7 @@ class WorkerAjaxHandler {
 		}
 
 		// Decrypt API token.
-		$encryption = new EncryptionService();
+		$encryption = EncryptionService::get_instance();
 		$api_token  = $encryption->decrypt( $settings['cf_api_token'] );
 
 		// Initialize services.
@@ -141,7 +141,7 @@ class WorkerAjaxHandler {
 
 		$settings = get_option( Settings::OPTION_KEY, array() );
 
-		$encryption = new EncryptionService();
+		$encryption = EncryptionService::get_instance();
 		$api_token  = $encryption->decrypt( $settings['cf_api_token'] ?? '' );
 
 		$api      = new CloudflareAPI( $api_token, $settings['r2_account_id'] ?? '' );
@@ -174,7 +174,7 @@ class WorkerAjaxHandler {
 			return;
 		}
 
-		$encryption = new EncryptionService();
+		$encryption = EncryptionService::get_instance();
 		$api_token  = $encryption->decrypt( $settings['cf_api_token'] ?? '' );
 
 		$api      = new CloudflareAPI( $api_token, $settings['r2_account_id'] ?? '' );

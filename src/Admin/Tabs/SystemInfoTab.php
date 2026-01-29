@@ -237,7 +237,8 @@ class SystemInfoTab {
 
 		// PHP Extensions.
 		$lines[]    = '## PHP Extensions';
-		$extensions = array( 'curl', 'openssl', 'json', 'mbstring', 'xml', 'gd', 'imagick' );
+		// Note: gd/imagick not needed - image processing done by Cloudflare Workers.
+		$extensions = array( 'curl', 'openssl', 'json', 'mbstring' );
 		foreach ( $extensions as $ext ) {
 			$lines[] = $ext . ': ' . ( extension_loaded( $ext ) ? 'Enabled' : 'Disabled' );
 		}

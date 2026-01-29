@@ -35,12 +35,17 @@ class ExtensibilityHooks {
 	public static function get_allowed_mime_types(): array {
 		$defaults = array(
 			'image/jpeg',
+			'image/jpg', // Non-standard but commonly used.
 			'image/png',
 			'image/gif',
 			'image/webp',
 			'image/avif',
+			'image/svg+xml',
 			'video/mp4',
 			'video/webm',
+			'video/quicktime',
+			'audio/mpeg',
+			'audio/mp3',
 			'application/pdf',
 		);
 

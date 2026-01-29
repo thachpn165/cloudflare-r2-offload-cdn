@@ -79,6 +79,8 @@ cmd_clean_vendor() {
 
     # Remove dev-only packages that should not be in production
     log_info "Removing dev-only packages..."
+    # Only remove packages that are truly dev-only (not runtime dependencies)
+    # NOTE: symfony, psr, guzzlehttp, mtdowling, ralouphie are AWS SDK runtime deps
     local dev_packages=(
         "phpunit"
         "sebastian"
@@ -95,9 +97,6 @@ cmd_clean_vendor() {
         "nikic"
         "phar-io"
         "theseer"
-        "composer"
-        "symfony"
-        "psr"
     )
 
     for pkg in "${dev_packages[@]}"; do
@@ -144,51 +143,19 @@ cmd_clean_vendor() {
         -name ".github" \
     \) -exec rm -rf {} + 2>/dev/null || true
 
-    # Remove AWS SDK services we don't need (keep only S3-related)
-    local aws_src="$vendor_dir/aws/aws-sdk-php/src"
-    if [ -d "$aws_src" ]; then
-        log_info "Optimizing AWS SDK (keeping S3 only)..."
-
-        # Services to KEEP (required for S3/R2)
-        local keep_services="Api Arn ClientSideMonitoring Credentials Crypto \
-            DefaultsMode Endpoint EndpointDiscovery EndpointV2 Exception Handler \
-            HasDataTrait.php HasMonitoringEventsTrait.php IdempotencyTokenMiddleware.php \
-            LruArrayCache.php Middleware Multipart ResultInterface.php ResultPaginator.php \
-            RetryMiddleware RetryMiddlewareV2.php S3 Signature Sts Token Waiter \
-            data functions.php WrappedHttpHandler.php ClientResolver.php \
-            CommandInterface.php CommandPool.php"
-
-        # Find all service directories in src/ and remove non-essential ones
-        for service_dir in "$aws_src"/*/; do
-            if [ -d "$service_dir" ]; then
-                local service_name=$(basename "$service_dir")
-                local keep=false
-
-                for keep_svc in $keep_services; do
-                    if [ "$service_name" = "$keep_svc" ]; then
-                        keep=true
-                        break
-                    fi
-                done
-
-                if [ "$keep" = false ]; then
-                    rm -rf "$service_dir"
+    # Only clean up data directory (API definitions) - keep S3, Sts, endpoints
+    # NOTE: Keep all AWS SDK core files intact to avoid missing class errors
+    local aws_data="$vendor_dir/aws/aws-sdk-php/src/data"
+    if [ -d "$aws_data" ]; then
+        log_info "Optimizing AWS SDK data directory..."
+        for data_dir in "$aws_data"/*/; do
+            if [ -d "$data_dir" ]; then
+                local data_name=$(basename "$data_dir")
+                if [[ "$data_name" != "s3" && "$data_name" != "sts" && "$data_name" != "endpoints" ]]; then
+                    rm -rf "$data_dir"
                 fi
             fi
         done
-
-        # Also clean up data directory (API definitions) - keep only S3 and Sts
-        local aws_data="$aws_src/data"
-        if [ -d "$aws_data" ]; then
-            for data_dir in "$aws_data"/*/; do
-                if [ -d "$data_dir" ]; then
-                    local data_name=$(basename "$data_dir")
-                    if [[ "$data_name" != "s3" && "$data_name" != "sts" && "$data_name" != "endpoints" ]]; then
-                        rm -rf "$data_dir"
-                    fi
-                fi
-            done
-        fi
     fi
 
     log_info "Vendor cleanup complete!"

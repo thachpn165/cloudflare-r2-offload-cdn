@@ -102,7 +102,7 @@ class StatsWidget {
 			return $default;
 		}
 
-		$encryption = new EncryptionService();
+		$encryption = EncryptionService::get_instance();
 		$api_token  = $encryption->decrypt( $settings['cf_api_token'] );
 
 		$api       = new CloudflareAPI( $api_token, $settings['r2_account_id'] );

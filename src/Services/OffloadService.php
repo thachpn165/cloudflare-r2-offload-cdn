@@ -74,11 +74,23 @@ class OffloadService {
 	 * @return array Result array with success/message.
 	 */
 	public function offload( int $attachment_id ): array {
-		// Check if should offload (with filter).
+		// Check MIME type first for better error message.
+		$mime          = get_post_mime_type( $attachment_id );
+		$allowed_types = ExtensibilityHooks::get_allowed_mime_types();
+
+		if ( ! in_array( $mime, $allowed_types, true ) ) {
+			return array(
+				'success' => false,
+				/* translators: %s: MIME type */
+				'message' => sprintf( __( 'MIME type "%s" is not allowed for offload', 'cloudflare-r2-offload-cdn' ), $mime ?: 'unknown' ),
+			);
+		}
+
+		// Check if should offload (with filter for third-party).
 		if ( ! ExtensibilityHooks::should_offload( $attachment_id ) ) {
 			return array(
 				'success' => false,
-				'message' => __( 'Offload not allowed for this attachment', 'cloudflare-r2-offload-cdn' ),
+				'message' => __( 'Offload blocked by filter (cfr2_should_offload)', 'cloudflare-r2-offload-cdn' ),
 			);
 		}
 

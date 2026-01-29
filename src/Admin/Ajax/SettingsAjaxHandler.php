@@ -140,7 +140,7 @@ class SettingsAjaxHandler {
 		// R2 Secret Access Key - only encrypt if not placeholder.
 		$secret = $input['r2_secret_access_key'] ?? '';
 		if ( ! empty( $secret ) && '********' !== $secret ) {
-			$encryption                        = new EncryptionService();
+			$encryption                        = EncryptionService::get_instance();
 			$sanitized['r2_secret_access_key'] = $encryption->encrypt( $secret );
 		} else {
 			// Keep existing value.
@@ -182,7 +182,7 @@ class SettingsAjaxHandler {
 		// Cloudflare API Token - only encrypt if not placeholder.
 		$cf_token = $input['cf_api_token'] ?? '';
 		if ( ! empty( $cf_token ) && '********' !== $cf_token ) {
-			$encryption                = new EncryptionService();
+			$encryption                = EncryptionService::get_instance();
 			$sanitized['cf_api_token'] = $encryption->encrypt( $cf_token );
 		} else {
 			// Keep existing value.
@@ -259,7 +259,7 @@ class SettingsAjaxHandler {
 		// If secret is placeholder, get from saved settings.
 		if ( '********' === $secret_key || empty( $secret_key ) ) {
 			$settings   = get_option( Settings::OPTION_KEY, array() );
-			$encryption = new EncryptionService();
+			$encryption = EncryptionService::get_instance();
 			$secret_key = $encryption->decrypt( $settings['r2_secret_access_key'] ?? '' );
 		}
 
@@ -332,7 +332,7 @@ class SettingsAjaxHandler {
 			wp_send_json_error( array( 'message' => __( 'Please configure Cloudflare API Token first.', 'cloudflare-r2-offload-cdn' ) ) );
 		}
 
-		$encryption = new EncryptionService();
+		$encryption = EncryptionService::get_instance();
 		$api_token  = $encryption->decrypt( $settings['cf_api_token'] );
 
 		$api    = new CloudflareAPI( $api_token, $settings['r2_account_id'] );
@@ -375,7 +375,7 @@ class SettingsAjaxHandler {
 		}
 
 		$settings   = get_option( Settings::OPTION_KEY, array() );
-		$encryption = new EncryptionService();
+		$encryption = EncryptionService::get_instance();
 		$api_token  = $encryption->decrypt( $settings['cf_api_token'] ?? '' );
 
 		$api    = new CloudflareAPI( $api_token, $settings['r2_account_id'] ?? '' );
