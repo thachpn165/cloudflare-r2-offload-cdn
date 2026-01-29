@@ -3,7 +3,7 @@
  * Plugin Name: CloudFlare R2 Offload & CDN
  * Plugin URI:  https://thachpham.com/plugins/cloudflare-r2-offload-cdn
  * Description: Offload WordPress media to Cloudflare R2 storage and serve via CDN with automatic image optimization (WebP/AVIF, responsive sizes, quality control).
- * Version:           1.0.1
+ * Version:           1.0.0
  * Author:      ThachPham
  * Author URI:  https://thachpham.com
  * License:     GPL-2.0+
