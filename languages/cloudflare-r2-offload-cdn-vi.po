@@ -706,6 +706,27 @@ msgstr "Chuyển"
 msgid "Bulk offload cancelled."
 msgstr "Đã hủy chuyển hàng loạt."
 
+msgid "Bulk restore cancelled."
+msgstr "Đã hủy khôi phục hàng loạt."
+
+msgid "Bulk delete cancelled."
+msgstr "Đã hủy xóa hàng loạt."
+
+msgid "All items processed."
+msgstr "Tất cả mục đã được xử lý."
+
+msgid "All items restored."
+msgstr "Tất cả mục đã được khôi phục."
+
+msgid "All local files deleted."
+msgstr "Đã xóa tất cả tệp cục bộ."
+
+msgid "Operation cancelled."
+msgstr "Thao tác đã bị hủy."
+
+msgid "Operation completed."
+msgstr "Thao tác đã hoàn thành."
+
 msgid "Operation failed"
 msgstr "Thao tác thất bại"
 

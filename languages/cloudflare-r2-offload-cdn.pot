@@ -928,8 +928,36 @@ msgstr ""
 msgid "Offload"
 msgstr ""
 
-#: src/Ajax/BulkActionsAjaxHandler.php
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
 msgid "Bulk offload cancelled."
+msgstr ""
+
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
+msgid "Bulk restore cancelled."
+msgstr ""
+
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
+msgid "Bulk delete cancelled."
+msgstr ""
+
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
+msgid "All items processed."
+msgstr ""
+
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
+msgid "All items restored."
+msgstr ""
+
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
+msgid "All local files deleted."
+msgstr ""
+
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
+msgid "Operation cancelled."
+msgstr ""
+
+#: src/Admin/Ajax/BulkOperationAjaxHandler.php
+msgid "Operation completed."
 msgstr ""
 
 #: src/Ajax/BulkActionsAjaxHandler.php

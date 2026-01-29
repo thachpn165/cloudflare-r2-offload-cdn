@@ -21,8 +21,7 @@
         "**/node_modules": true,
         "**/vendor": true,
         "**/.git": true,
-        "**/dist": true,
-        "**/svn": true
+
     },
 
     "search.exclude": {

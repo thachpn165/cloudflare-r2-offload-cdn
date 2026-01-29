@@ -151,31 +151,29 @@ class BulkOperationAjaxHandler {
 	 * AJAX handler for process single bulk item.
 	 */
 	public function ajax_process_bulk_item(): void {
-		$this->process_action_item( QueueAction::OFFLOAD, 'Bulk offload cancelled.', 'All items processed.' );
+		$this->process_action_item( QueueAction::OFFLOAD );
 	}
 
 	/**
 	 * AJAX handler for process single restore item.
 	 */
 	public function ajax_process_restore_item(): void {
-		$this->process_action_item( QueueAction::RESTORE, 'Bulk restore cancelled.', 'All items restored.' );
+		$this->process_action_item( QueueAction::RESTORE );
 	}
 
 	/**
 	 * AJAX handler for process single delete local item.
 	 */
 	public function ajax_process_delete_local_item(): void {
-		$this->process_action_item( QueueAction::DELETE_LOCAL, 'Bulk delete cancelled.', 'All local files deleted.' );
+		$this->process_action_item( QueueAction::DELETE_LOCAL );
 	}
 
 	/**
 	 * Generic action item processor.
 	 *
-	 * @param string $action     Action type.
-	 * @param string $cancel_msg Cancellation message.
-	 * @param string $done_msg   Completion message.
+	 * @param string $action Action type.
 	 */
-	private function process_action_item( string $action, string $cancel_msg, string $done_msg ): void {
+	private function process_action_item( string $action ): void {
 		$this->verify_ajax_nonce();
 		$this->verify_manage_options();
 
@@ -184,7 +182,7 @@ class BulkOperationAjaxHandler {
 			wp_send_json_success(
 				array(
 					'done'    => true,
-					'message' => __( $cancel_msg, 'cloudflare-r2-offload-cdn' ),
+					'message' => $this->get_cancel_message( $action ),
 				)
 			);
 		}
@@ -195,7 +193,7 @@ class BulkOperationAjaxHandler {
 			wp_send_json_success(
 				array(
 					'done'    => true,
-					'message' => __( $done_msg, 'cloudflare-r2-offload-cdn' ),
+					'message' => $this->get_done_message( $action ),
 				)
 			);
 		}
@@ -210,6 +208,44 @@ class BulkOperationAjaxHandler {
 				'message'  => $result['message'],
 			)
 		);
+	}
+
+	/**
+	 * Get cancellation message for action.
+	 *
+	 * @param string $action Action type.
+	 * @return string Translated message.
+	 */
+	private function get_cancel_message( string $action ): string {
+		switch ( $action ) {
+			case QueueAction::OFFLOAD:
+				return __( 'Bulk offload cancelled.', 'cloudflare-r2-offload-cdn' );
+			case QueueAction::RESTORE:
+				return __( 'Bulk restore cancelled.', 'cloudflare-r2-offload-cdn' );
+			case QueueAction::DELETE_LOCAL:
+				return __( 'Bulk delete cancelled.', 'cloudflare-r2-offload-cdn' );
+			default:
+				return __( 'Operation cancelled.', 'cloudflare-r2-offload-cdn' );
+		}
+	}
+
+	/**
+	 * Get completion message for action.
+	 *
+	 * @param string $action Action type.
+	 * @return string Translated message.
+	 */
+	private function get_done_message( string $action ): string {
+		switch ( $action ) {
+			case QueueAction::OFFLOAD:
+				return __( 'All items processed.', 'cloudflare-r2-offload-cdn' );
+			case QueueAction::RESTORE:
+				return __( 'All items restored.', 'cloudflare-r2-offload-cdn' );
+			case QueueAction::DELETE_LOCAL:
+				return __( 'All local files deleted.', 'cloudflare-r2-offload-cdn' );
+			default:
+				return __( 'Operation completed.', 'cloudflare-r2-offload-cdn' );
+		}
 	}
 
 	/**
