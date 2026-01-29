@@ -188,25 +188,13 @@ class MediaLibraryExtension implements HookableInterface {
 		$local_exists  = $file_path && file_exists( $file_path );
 
 		if ( $is_offloaded && $local_exists ) {
-			// Both local and R2.
-			echo '<span class="cfr2-status cfr2-both" title="' . esc_attr__( 'Stored locally and on R2', 'cloudflare-r2-offload-cdn' ) . '">';
-			echo '<span class="dashicons dashicons-admin-site"></span><span class="dashicons dashicons-cloud"></span> ';
-			echo esc_html__( 'Local / R2', 'cloudflare-r2-offload-cdn' );
-			echo '</span>';
+			echo '<span class="cfr2-status cfr2-both">' . esc_html__( 'Local / R2', 'cloudflare-r2-offload-cdn' ) . '</span>';
 		} elseif ( $is_offloaded ) {
-			// R2 only.
-			echo '<span class="cfr2-status cfr2-offloaded" title="' . esc_attr__( 'Offloaded to R2 (no local file)', 'cloudflare-r2-offload-cdn' ) . '">';
-			echo '<span class="dashicons dashicons-cloud"></span> ' . esc_html__( 'R2', 'cloudflare-r2-offload-cdn' );
-			echo '</span>';
+			echo '<span class="cfr2-status cfr2-offloaded">' . esc_html__( 'R2', 'cloudflare-r2-offload-cdn' ) . '</span>';
 		} elseif ( $is_pending ) {
-			echo '<span class="cfr2-status cfr2-pending" title="' . esc_attr__( 'Queued for offload', 'cloudflare-r2-offload-cdn' ) . '">';
-			echo '<span class="dashicons dashicons-clock"></span> ' . esc_html__( 'Pending', 'cloudflare-r2-offload-cdn' );
-			echo '</span>';
+			echo '<span class="cfr2-status cfr2-pending">' . esc_html__( 'Pending', 'cloudflare-r2-offload-cdn' ) . '</span>';
 		} else {
-			// Local only.
-			echo '<span class="cfr2-status cfr2-local" title="' . esc_attr__( 'Stored locally', 'cloudflare-r2-offload-cdn' ) . '">';
-			echo '<span class="dashicons dashicons-admin-site"></span> ' . esc_html__( 'Local', 'cloudflare-r2-offload-cdn' );
-			echo '</span>';
+			echo '<span class="cfr2-status cfr2-local">' . esc_html__( 'Local', 'cloudflare-r2-offload-cdn' ) . '</span>';
 		}
 	}
 

@@ -149,6 +149,13 @@ class SettingsPage {
 					</button>
 				</div>
 			</form>
+
+			<div class="cloudflare-r2-offload-cdn-disclaimer" style="margin-top: 30px; padding: 15px; background: #f9f9f9; border-left: 4px solid #ccc; color: #666; font-size: 12px;">
+				<p style="margin: 0;">
+					<strong><?php esc_html_e( 'Disclaimer:', 'cloudflare-r2-offload-cdn' ); ?></strong>
+					<?php esc_html_e( 'This plugin is an independent, third-party project and is not affiliated with, endorsed by, or officially associated with Cloudflare, Inc. "Cloudflare" and "R2" are trademarks of Cloudflare, Inc. The use of these names is solely for descriptive purposes to indicate compatibility with Cloudflare services.', 'cloudflare-r2-offload-cdn' ); ?>
+				</p>
+			</div>
 		</div>
 		<?php
 	}

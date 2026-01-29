@@ -13,11 +13,11 @@ msgstr ""
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
 #: src/Admin/AdminMenu.php
-msgid "CloudFlare R2 Offload & CDN"
+msgid "CF R2 Offload & CDN"
 msgstr ""
 
 #: src/Admin/AdminMenu.php
-msgid "CloudFlare R2 Offload & CDN Settings"
+msgid "CF R2 Offload & CDN Settings"
 msgstr ""
 
 #: src/Admin/Pages/DashboardPage.php

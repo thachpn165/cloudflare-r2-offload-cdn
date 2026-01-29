@@ -1,6 +1,6 @@
-=== CloudFlare R2 Offload & CDN ===
+=== CF R2 Offload & CDN ===
 Contributors: thachpn165
-Tags: cloudflare, r2, cdn, media, offload, image optimization, webp, avif
+Tags: cloudflare, cdn, media, offload, image optimization
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0

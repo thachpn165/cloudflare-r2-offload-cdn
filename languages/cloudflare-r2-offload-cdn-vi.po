@@ -16,10 +16,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-msgid "CloudFlare R2 Offload & CDN"
+msgid "CF R2 Offload & CDN"
 msgstr "CloudFlare R2 Offload & CDN"
 
-msgid "CloudFlare R2 Offload & CDN Settings"
+msgid "CF R2 Offload & CDN Settings"
 msgstr "Cài đặt CloudFlare R2 Offload & CDN"
 
 msgid "Dashboard"
@@ -888,3 +888,9 @@ msgstr "Chuyển media WordPress lên lưu trữ Cloudflare R2 và phục vụ q
 
 msgid "Go to Bulk Actions"
 msgstr "Đi đến Thao tác hàng loạt"
+
+msgid "Disclaimer:"
+msgstr "Tuyên bố miễn trừ:"
+
+msgid "This plugin is an independent, third-party project and is not affiliated with, endorsed by, or officially associated with Cloudflare, Inc. \"Cloudflare\" and \"R2\" are trademarks of Cloudflare, Inc. The use of these names is solely for descriptive purposes to indicate compatibility with Cloudflare services."
+msgstr "Plugin này là một dự án độc lập của bên thứ ba và không liên kết, được chứng thực hoặc liên quan chính thức với Cloudflare, Inc. \"Cloudflare\" và \"R2\" là nhãn hiệu của Cloudflare, Inc. Việc sử dụng các tên này chỉ nhằm mục đích mô tả để chỉ ra khả năng tương thích với các dịch vụ của Cloudflare."
